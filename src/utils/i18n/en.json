@@ -1,0 +1,29 @@
+{
+    "person": {
+        "name0": "All",
+        "name1": "Rhein",
+        "name2": "Kalan",
+        "name3": "Lengguang",
+        "name4": "Deyan",
+        "name5": "Shenhai"
+    },
+    "list": {
+        "content1": {
+            "first": "Fashion",
+            "second": "Era",
+            "third": "0011Brith",
+            "fourth": "Bingyuan",
+            "fifth": "Shanhu",
+            "sixth": "BirthLand"
+        },
+        "content2": {
+            "first": "Rank",
+            "second": "Strength"
+        },
+        "content3": {
+            "first": "Browse",
+            "second": "Material"
+        }
+    },
+    "guan-wang": "Official Website"
+}

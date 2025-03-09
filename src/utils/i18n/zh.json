@@ -1,0 +1,30 @@
+{
+    "person": {
+      "name0": "全部",
+      "name1": "莱茵生命",
+      "name2": "喀兰贸易",
+      "name3": "临光骑士团",
+      "name4": "大炎",
+      "name5": "深海猎人"
+    },
+    "list": {
+      "content1": {
+        "first": "时装",
+        "second": "时代",
+        "third": "0011制造",
+        "fourth": "冰原信使",
+        "fifth": "珊瑚海岸",
+        "sixth": "生命之地"
+      },
+      "content2": {
+        "first": "强度",
+        "second": "排名"
+      },
+      "content3": {
+        "first": "素材",
+        "second": "浏览"
+      }
+    },
+    "guan-wang": "官网"
+  }
+  

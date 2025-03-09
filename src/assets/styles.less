@@ -1,0 +1,31 @@
+//npm install less -g
+//一段一段的改变
+.rem(@name, @multiple) {
+    @{name}: @multiple*1rem;
+}
+
+//时刻在改变
+.vw(@name, @multiple) {
+    @{name}: @multiple*1vw;
+}   
+
+@media(max-width:800px) {
+    html {
+        font-size: 16px;  //  === 1rem
+    }
+}
+
+@media(min-width:800px) and (max-width:1100px) {
+    html {
+        font-size: 18px;
+    }
+}
+
+@media(min-width:1100px) {
+    html {
+        font-size: 20px;
+    }
+}
+
+
+
