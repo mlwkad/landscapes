@@ -6,13 +6,13 @@
                 <el-icon class="login-icon">
                     <User />
                 </el-icon>
-                <input class="login-input-text" type="text" placeholder="用户名">
+                <input class="login-input-text" type="text" placeholder="用户名" v-model="username">
             </div>
             <div class="login-input">
                 <el-icon class="login-icon">
                     <Key />
                 </el-icon>
-                <input class="login-input-text" type="text" placeholder="密码">
+                <input class="login-input-text" type="text" placeholder="密码" v-model="password">
             </div>
             <el-button class="login-button" @click="gohome">
                 <el-icon class="login-icon-animation">
@@ -22,20 +22,47 @@
             </el-button>
         </div>
     </div>
+    <div class="alert" id="alertId">
+        {{ alert }}
+    </div>
 </template>
 
 <script setup lang="ts">
 import { User, Key, Loading, Bicycle } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-const router = useRouter()
-const gohome = () => {
-    const loginIcon = document.querySelector('.login-icon-animation').classList.add('login-icon-animation-go')
-    const loginFont = document.querySelector('.button-font-animation').classList.add('button-font-animation-go')
-    setTimeout(() => {
-        router.push({ path: '/' })
-    }, 500);
+import login from '@/utils/api/login'
+import { useLoginStore } from '@/stores/login'
+import { set } from '@vueuse/core'
 
+const router = useRouter()
+let username = ref('')
+let password = ref('')
+let alert = ref('666')
+const gohome = () => {
+    login({
+        username: username.value,
+        password: password.value
+    }).then((res: any) => {
+        console.log('token:',res.token);
+        const loginIcon = document.querySelector('.login-icon-animation').classList.add('login-icon-animation-go')
+        const loginFont = document.querySelector('.button-font-animation').classList.add('button-font-animation-go')
+        const alertItem = document.querySelector('.alert')
+        alertItem.classList.add('alert-animation')
+        alert.value = '登录成功'
+        setTimeout(() => {
+            router.push({ path: '/' })
+        }, 1300);
+    }).catch((err: any) => {
+        alert.value = '账号或密码错误'
+        const alertItem = document.querySelector('.alert')
+        alertItem.classList.add('alert-animation')
+        username.value = ''
+        password.value = ''
+        setTimeout(() => {
+            alertItem.classList.remove('alert-animation')
+        }, 2000)
+    })
 }
 
 </script>
@@ -44,13 +71,32 @@ const gohome = () => {
 @import '@/assets/styles.less';
 @import '@/assets/property.less';
 
+.alert {
+    .rem(padding, 0.5);
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    backdrop-filter: blur(20px);
+    font-weight: 600;
+    border-radius: 12px;
+    .rem(font-size, 1.1);
+    border: 1px solid #ffffff;
+    transform: translate(-50%, -400%) scale(0.3);
+    transition: transform 0.5s ease-in-out;
+}
+
+.alert-animation {
+    transform: translate(-50%, 100%) scale(1);
+    transition: transform 0.7s ease-in-out;
+}
+
 .login-zone {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     width: 100vw;
-    background-image: url(https://cdn.pixabay.com/photo/2022/04/08/06/36/rock-7118843_1280.jpg);
+    background-image: url(https://cdn.pixabay.com/photo/2018/07/18/20/25/channel-3547224_1280.jpg);
     background-size: cover;
 
     .login {
@@ -98,7 +144,7 @@ const gohome = () => {
                 .rem(padding, 0.6);
                 position: relative;
                 background-color: transparent;
-                color: black;
+                color: rgb(0, 0, 0);
                 font-weight: 600;
                 transition: color 0.3s ease-in-out;
 
@@ -108,7 +154,7 @@ const gohome = () => {
                 }
 
                 &::placeholder {
-                    color: black;
+                    color: rgb(0, 0, 0);
                 }
             }
         }
@@ -134,7 +180,7 @@ const gohome = () => {
             }
 
             .login-icon-animation-go {
-                animation: go 0.5s ease-in-out;
+                animation: go 1.4s ease-in-out;
             }
 
             @keyframes go {

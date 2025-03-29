@@ -5,8 +5,7 @@ import App from '@/App.vue'
 //npm install @vueuse/core
 import { useIntersectionObserver } from '@vueuse/core'
 import USEI18N from '@/utils/i18n/language'
-import '@/assets/styles.less'
-import '@/assets/property.less'
+
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
@@ -52,3 +51,15 @@ app.directive('SiHuaJinRu', {
     }
 })
 
+// 注册 Service Worker
+// if ('serviceWorker' in navigator) {
+//     window.addEventListener('load', () => {
+//         navigator.serviceWorker.register('/ServerWorker.ts')  //全局注册Service Worker
+//             .then(registration => {
+//                 console.log('注册成功,作用域:', registration.scope);
+//             })
+//             .catch(error => {
+//                 console.error('Service Worker registration failed:', error);
+//             });
+//     });
+// }

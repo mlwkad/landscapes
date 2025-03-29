@@ -6,27 +6,46 @@
         </header>
         <div class="park-line"></div>
     </div>
-    <nice-show></nice-show>
-    <div class="title">
-        xxxxxx
+    <div v-if="activeId === 1 || activeSecId === 1">
+        <nice-show></nice-show>
+        <picture-one></picture-one>
     </div>
-    <!-- 图片展示 -->
-    <picture-one></picture-one>
+    <div v-if="activeId === 2 || activeSecId === 2">
+        <treasure></treasure>
+    </div>
+    <XunFei class="XF-position" v-if="activeId === 3"></XunFei>
+    <div class="go-top" v-if="goTopShow" @click="goTop">回到顶部</div>
 </template>
 <script setup lang="ts">
 import pictureOne from '@/views/picture-one.vue'
 import NiceShow from '@/views/NiceShow.vue'
+import XunFei from '@/views/XunFei.vue'
+import treasure from '@/views/treasure.vue'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 let activeId = ref(1)
-let header = [{ id: 1, name: '探索' }, { id: 2, name: '收藏' }, { id: 3, name: '问问' }, { id: 4, name: '登录' }]
+let activeSecId = ref(1)
+let goTopShow = ref(false)
+let header = [{ id: 1, secId: 1, name: '探索' }, { id: 2, secId: 2, name: '收藏' }, { id: 3, name: '问问' }, { id: 4, name: '登录' }]
 const router = useRouter()
 const go = (item: any) => {
-    if (item.name === '登录') {
-        router.push({ path: '/login' })
-    }
     activeId.value = item.id
+    if (item.id === 1) activeSecId.value = item.secId
+    if (item.id === 2) activeSecId.value = item.secId
+    if (item.id === 4) router.push({ path: '/login' })
 }
+
+const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
+onMounted(() => {
+    const handleScroll = () => {
+        if (window.scrollY > 3000) goTopShow.value = true
+        else goTopShow.value = false
+    }
+    window.addEventListener('scroll', handleScroll)
+    onUnmounted(() => window.removeEventListener('scroll', handleScroll))
+})
+
 </script>
 <style scoped lang="less">
 @import '@/assets/styles.less';
@@ -46,10 +65,12 @@ const go = (item: any) => {
         .rem(padding-top, 0.4);
         cursor: pointer;
 
-
-
         &-font {
-            .rem(font-size, 1);
+            .rem(font-size, 1.1);
+
+            @media(min-width:600px) {
+                .rem(font-size, 1.3);
+            }
 
             &:last-child {
                 font-weight: 550;
@@ -94,9 +115,47 @@ const go = (item: any) => {
     }
 }
 
-.title {
-    .rem(font-size, 1.2);
-    .rem(margin-top, 0.4);
-    text-align: center;
+.XF-position {
+    z-index: 9999;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    animation: showWenWen 0.3s linear forwards;
+}
+
+@keyframes showWenWen {
+    0% {
+        opacity: 0.5;
+        scale: 0.7;
+        transform: translateY(50%);
+    }
+
+    100% {
+        opacity: 1;
+        scale: 1;
+        transform: translateX(0);
+    }
+}
+
+.go-top {
+    position: fixed;
+    bottom: 0px;
+    right: 20px;
+    background-color: black;
+    color: white;
+    .rem(padding, 0.5);
+    border-radius: 12px 12px 0 0;
+    cursor: pointer;
+    animation: goTop 0.7s ease forwards;
+}
+
+@keyframes goTop {
+    0% {
+        transform: translateY(20px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
 }
 </style>

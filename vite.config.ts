@@ -20,8 +20,10 @@ export default defineConfig({
     Components({  //9
       resolvers: [ElementPlusResolver()]  //10.自动按需加载组件
     }),
-    compression({  //npm i vite-plugin-compression --save-dev  gzip压缩
-      threshold: 10240,  //10kb
+    compression({  // npm i vite-plugin-compression -D 对生产环境的文件进行gzip压缩 配合Nginx使用
+      //浏览器发送请求时,请求头Accept-Encoding: gzip，表示浏览器支持gzip压缩
+      //响应头Content-Encoding: gzip 表示该资源使用了 gzip 压缩,浏览器会自动解压
+      threshold: 10240,  // >=10kb的文件进行压缩
       algorithm: 'gzip'
     }),
   ],
@@ -40,7 +42,10 @@ export default defineConfig({
   //surge . 新域名.surge.sh    为更新操作(自设域名)
   server: {
     proxy: {
-      '/api': 'http://testapi.xuexiluxian.cn'  //其他请求为/api/...时,被代理成http://testapi.xuexiluxian.cn/api/...
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
     }
   },
   build: {
