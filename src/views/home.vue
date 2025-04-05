@@ -7,8 +7,10 @@
         <div class="park-line"></div>
     </div>
     <div v-if="activeId === 1 || activeSecId === 1">
-        <nice-show></nice-show>
-        <picture-one></picture-one>
+        <!-- <nice-show></nice-show> -->
+        <!-- <picture-one></picture-one> -->
+        <search></search>
+        <picture-pool></picture-pool>
     </div>
     <div v-if="activeId === 2 || activeSecId === 2">
         <treasure></treasure>
@@ -19,8 +21,10 @@
 <script setup lang="ts">
 import pictureOne from '@/views/picture-one.vue'
 import NiceShow from '@/views/NiceShow.vue'
+import search from './search.vue'
 import XunFei from '@/views/XunFei.vue'
-import treasure from '@/views/treasure.vue'
+import treasure from './treasure.vue'
+import PicturePool from '@/views/PicturePool.vue'
 import { useRouter } from 'vue-router'
 import { onMounted, onUnmounted, ref } from 'vue'
 let activeId = ref(1)

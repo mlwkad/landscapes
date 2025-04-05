@@ -79,7 +79,7 @@ const scrollAnimation = (id: any, multiple: any, delayPlace: any) => {
     &-content {
         height: 100vh;
         position: sticky;
-        top: 70px;
+        top: 15.5vh;
         display: flex;
         align-content: flex-start;
         justify-content: space-around;

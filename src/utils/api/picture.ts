@@ -3,7 +3,7 @@ import request from '@/utils/request'
 export function homeShowPicture() {
     return request({
         url: '/api/picture/homeShowPicture',
-        method: 'get'
+        method: 'get',
     })
 }
 

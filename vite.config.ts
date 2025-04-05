@@ -32,14 +32,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
-  //代理设置
-  //npm install -g surge
-  //1.surge login 350221...  @@@hat...
-  //2.npm run build
-  //3.surge dist components3502219532.surge.sh
-  //4.surge logout 后 重复1
-  //surge .                    为更新操作(surge自动分配域名 )
-  //surge . 新域名.surge.sh    为更新操作(自设域名)
   server: {
     proxy: {
       '/api': {
