@@ -44,7 +44,8 @@
                     <div v-for="(item, index) in tagImages" :key="index" class="waterfall-item">
                         <img class="cover-img" :src="item.isLiked ? filledHeart : heart" @click.stop="likeImage(item)">
                         <img class="download-img" :src="downloadIcon" @click.stop="downloadImage(item)" title="下载图片">
-                        <img class="waterfall-img" :src="item.url" v-lazyimg v-SiHuuaJinRu alt="tag image">
+                        <img class="waterfall-img" :src="item.url" v-lazyimg v-SiHuuaJinRu alt="tag image"
+                            @click="showImageDetails(item)">
                     </div>
                 </div>
                 <div class="pagination" v-if="tagImages.length > 0">
@@ -62,6 +63,38 @@
         <!-- Alert for like notification -->
         <div class="alert" id="alertId">
             收藏成功
+        </div>
+
+        <!-- Image Detail Drawer -->
+        <div class="image-detail-drawer" :class="{ 'drawer-open': isImageDetailDrawerOpen }">
+            <div class="drawer-content">
+                <div class="drawer-header">
+                    <button class="close-btn" @click="closeImageDetailDrawer">×</button>
+                </div>
+                <div class="drawer-body" v-if="selectedDetailImage">
+                    <img :src="selectedDetailImage.url" class="detail-image">
+                    <div class="image-info">
+                        <div class="info-row">
+                            <span class="info-label">点击数：</span>
+                            <span class="info-value">{{ selectedDetailImage.clickNum || 0 }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">收藏数：</span>
+                            <span class="info-value">{{ selectedDetailImage.treasureNum || 0 }}</span>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn like-btn" @click="likeImage(selectedDetailImage)">
+                                <img :src="selectedDetailImage.isLiked ? filledHeart : heart" class="btn-icon">
+                                {{ selectedDetailImage.isLiked ? '已收藏' : '收藏' }}
+                            </button>
+                            <button class="action-btn download-btn" @click="downloadImage(selectedDetailImage)">
+                                <img :src="downloadIcon" class="btn-icon">
+                                下载
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -416,6 +449,24 @@ onUnmounted(() => {
         observer = null
     }
 })
+
+// 图片详情抽屉状态
+const isImageDetailDrawerOpen = ref(false)
+const selectedDetailImage = ref(null)
+
+// 显示图片详情
+const showImageDetails = (item: any) => {
+    selectedDetailImage.value = item
+    isImageDetailDrawerOpen.value = true
+}
+
+// 关闭图片详情抽屉
+const closeImageDetailDrawer = () => {
+    isImageDetailDrawerOpen.value = false
+    setTimeout(() => {
+        selectedDetailImage.value = null
+    }, 300) // 等待动画结束后再清空数据
+}
 </script>
 
 <style scoped lang="less">
@@ -424,7 +475,7 @@ onUnmounted(() => {
     padding: 20px;
 
     .banner {
-        background: url('https://images.pexels.com/photos/31133725/pexels-photo-31133725.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load') center/cover;
+        background: url('https://images.pexels.com/photos/31293426/pexels-photo-31293426.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load') center/cover;
         height: 60vh;
         display: flex;
         align-items: center;
@@ -769,6 +820,138 @@ onUnmounted(() => {
     .alert-animation {
         transform: translate(-50%, 100%) scale(1);
         transition: transform 0.7s ease-in-out;
+    }
+
+    .image-detail-drawer {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 100%;
+        height: 100%;
+        z-index: 100000;
+        transition: all 0.3s ease-in-out;
+        pointer-events: none;
+
+        &.drawer-open {
+            right: 0;
+            pointer-events: auto;
+        }
+
+        .drawer-content {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+            padding: 0 24px;
+            overflow-y: auto;
+
+            @media (max-width: 768px) {
+                width: 90%;
+            }
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: flex-end;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 12px 0;
+            z-index: 1;
+
+            .close-btn {
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 8px;
+                color: #666;
+
+                &:hover {
+                    color: #333;
+                }
+            }
+        }
+
+        .drawer-body {
+            .detail-image {
+                width: 100%;
+                border-radius: 12px;
+                margin-bottom: 24px;
+            }
+
+            .image-info {
+                padding: 0 16px;
+
+                .info-row {
+                    display: flex;
+                    margin-bottom: 16px;
+                    align-items: center;
+
+                    .info-label {
+                        color: #666;
+                        width: 80px;
+                    }
+
+                    .info-value {
+                        color: #333;
+                        font-weight: 500;
+                    }
+                }
+
+                .action-buttons {
+                    display: flex;
+                    gap: 16px;
+                    margin-top: 24px;
+
+                    .action-btn {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        padding: 12px;
+                        border-radius: 8px;
+                        border: 1px solid #ddd;
+                        background-color: #fff;
+                        cursor: pointer;
+                        transition: all 0.3s;
+
+                        &:hover {
+                            background-color: #f5f5f5;
+                        }
+
+                        .btn-icon {
+                            width: 20px;
+                            height: 20px;
+                        }
+                    }
+
+                    .like-btn {
+                        background-color: #fff3f3;
+                        border-color: #ffcdd2;
+                        color: #e57373;
+
+                        &:hover {
+                            background-color: #ffe6e6;
+                        }
+                    }
+
+                    .download-btn {
+                        background-color: #f3f8ff;
+                        border-color: #bbdefb;
+                        color: #64b5f6;
+
+                        &:hover {
+                            background-color: #e6f0ff;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

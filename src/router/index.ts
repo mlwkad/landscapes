@@ -14,14 +14,6 @@ const router = createRouter({
       path: '/login',
       component: () => import('@/views/login.vue'),
     },
-    {
-      path: '/picture-pool',
-      component: () => import('@/views/PicturePool.vue'),
-    },
-    // {
-    //   path: '/XunFei',
-    //   component: () => import('@/views/XunFei.vue')
-    // }
   ],
 })
 

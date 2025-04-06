@@ -17,7 +17,7 @@
                     <img class="cover-img" :src="item.isLiked === 0 ? heart : filledHeart" @click.stop="isliked(item)">
                     <img class="download-img" :src="download" @click.stop="downloadImage(item.url)">
                     <img class="waterfall-img" alt="" :src="item.url" v-lazyimg v-SiHuaJinRu
-                        :style="{ height: item.height + 'px' }">
+                        :style="{ height: item.height + 'px' }" @click="showImageDetails(item)">
                 </div>
             </div>
         </div>
@@ -35,6 +35,42 @@
     </div>
     <div class="alert" id="alertId">
         收藏成功
+    </div>
+
+    <!-- 图片详情抽屉 -->
+    <div class="drawer" :class="{ 'drawer-open': isDrawerOpen }">
+        <div class="drawer-content">
+            <div class="drawer-header">
+                <button class="close-btn" @click="closeDrawer">×</button>
+            </div>
+            <div class="drawer-body" v-if="selectedImage">
+                <img :src="selectedImage.url" class="detail-image">
+                <div class="image-info">
+                    <div class="info-row">
+                        <span class="info-label">点击数：</span>
+                        <span class="info-value">{{ selectedImage.clickNum }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">收藏数：</span>
+                        <span class="info-value">{{ selectedImage.treasureNum }}</span>
+                    </div>
+                    <!-- <div class="info-row">
+                        <span class="info-label">发布时间：</span>
+                        <span class="info-value">{{ formatTimeAgo(selectedImage.mostNew) }}</span>
+                    </div> -->
+                    <div class="action-buttons">
+                        <button class="action-btn like-btn" @click="isliked(selectedImage)">
+                            <img :src="selectedImage.isLiked === 0 ? heart : filledHeart" class="btn-icon">
+                            {{ selectedImage.isLiked === 0 ? '收藏' : '已收藏' }}
+                        </button>
+                        <button class="action-btn download-btn" @click="downloadImage(selectedImage.url)">
+                            <img :src="download" class="btn-icon">
+                            下载
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -74,6 +110,10 @@ let resizeObserver = null
 // 图片池引用(回到顶部)
 const picturePool = ref(null)
 
+// 抽屉相关状态
+const isDrawerOpen = ref(false)
+const selectedImage = ref(null)
+
 // 收藏/取消收藏
 const isliked = (item) => {
     //更新数据库
@@ -109,7 +149,7 @@ const getImages = async () => {
                         id: item0.id,
                         isLiked: item0.isLiked || 0,
                         treasureNum: item0.treasureNum || 0,
-                        Mostnew: item0.Mostnew || 0,
+                        mostNew: item0.mostNew || 0,
                         clickNum: item0.clickNum || 0
                     })
                 })
@@ -140,7 +180,7 @@ const sortImages = () => {
             break
         case 'newest':
             // 按照Mostnew升序排序（最新的）
-            sortedImages.sort((a, b) => (a.Mostnew || 0) - (b.Mostnew || 0))
+            sortedImages.sort((a, b) => (a.mostNew || 0) - (b.mostNew || 0))
             break
         case 'popular':
             // 按照clickNum降序排序（热门）
@@ -275,6 +315,33 @@ const downloadImage = (url) => {
             document.body.removeChild(link)
         })
         .catch(error => console.error('下载失败:', error))
+}
+
+// 显示图片详情
+const showImageDetails = (item) => {
+    selectedImage.value = item
+    isDrawerOpen.value = true
+}
+
+// 关闭抽屉
+const closeDrawer = () => {
+    isDrawerOpen.value = false
+    setTimeout(() => {
+        selectedImage.value = null
+    }, 300) // 等待动画结束后再清空数据
+}
+
+// 格式化时间
+const formatTimeAgo = (timestamp) => {
+    const now = Date.now()
+    const diff = now - timestamp
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+    if (days === 0) return '今天'
+    if (days === 1) return '昨天'
+    if (days < 30) return `${days}天前`
+    if (days < 365) return `${Math.floor(days / 30)}个月前`
+    return `${Math.floor(days / 365)}年前`
 }
 
 onMounted(() => {
@@ -423,6 +490,7 @@ onUnmounted(() => {
                     border-radius: 12px;
                     width: 100%;
                     object-fit: cover;
+                    cursor: pointer;
                 }
             }
         }
@@ -484,6 +552,139 @@ onUnmounted(() => {
     .page-info {
         font-size: 16px;
         color: #666;
+    }
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    transition: all 0.3s ease-in-out;
+    pointer-events: none; // 默认不接受点击事件，避免遮挡底层内容
+
+    &.drawer-open {
+        right: 0;
+        pointer-events: auto; // 打开时接受点击事件
+    }
+
+    .drawer-content {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background-color: #fff;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+        padding: 0 24px;
+        overflow-y: auto;
+
+        @media (max-width: 768px) {
+            width: 90%;
+        }
+    }
+
+    .drawer-header {
+        display: flex;
+        justify-content: flex-end;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        padding: 12px 0;
+        z-index: 1;
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            color: #666;
+
+            &:hover {
+                color: #333;
+            }
+        }
+    }
+
+    .drawer-body {
+        .detail-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            object-fit: cover;
+        }
+
+        .image-info {
+            padding: 0 16px;
+
+            .info-row {
+                display: flex;
+                margin-bottom: 16px;
+                align-items: center;
+
+                .info-label {
+                    color: #666;
+                    width: 80px;
+                }
+
+                .info-value {
+                    color: #333;
+                    font-weight: 500;
+                }
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 16px;
+                margin-top: 24px;
+
+                .action-btn {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    padding: 12px;
+                    border-radius: 8px;
+                    border: 1px solid #ddd;
+                    background-color: #fff;
+                    cursor: pointer;
+                    transition: all 0.3s;
+
+                    &:hover {
+                        background-color: #f5f5f5;
+                    }
+
+                    .btn-icon {
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+
+                .like-btn {
+                    background-color: #fff3f3;
+                    border-color: #ffcdd2;
+                    color: #e57373;
+
+                    &:hover {
+                        background-color: #ffe6e6;
+                    }
+                }
+
+                .download-btn {
+                    background-color: #f3f8ff;
+                    border-color: #bbdefb;
+                    color: #64b5f6;
+
+                    &:hover {
+                        background-color: #e6f0ff;
+                    }
+                }
+            }
+        }
     }
 }
 </style>

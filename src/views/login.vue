@@ -52,7 +52,7 @@ const gohome = () => {
         alert.value = '登录成功'
         setTimeout(() => {
             router.push({ path: '/' })
-        }, 1300);
+        }, 1000);
     }).catch((err: any) => {
         alert.value = '账号或密码错误'
         const alertItem = document.querySelector('.alert')
@@ -180,7 +180,7 @@ const gohome = () => {
             }
 
             .login-icon-animation-go {
-                animation: go 1.4s ease-in-out;
+                animation: go 1s ease-in-out;
             }
 
             @keyframes go {
