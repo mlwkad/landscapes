@@ -14,6 +14,40 @@
                 <pre>{{ streamResponse }}</pre>
             </div>
         </div>
+        <div class="XF-history" v-show="isShowHist">
+            <div class="XF-hist-head">
+                <img class="XF-tou" src="#" alt="头像"></img>
+                <div class="XF-fold" @click="isFlod">展开</div>
+            </div>
+            <div class="XF-hist-create">
+                <img class="add" src="#" alt="">+</img>
+                <div class="add-title">新对话</div>
+                <div class="fast-create">快捷创建</div>
+            </div>
+            <div class="XF-hist-utils">
+                <div class="utils-style" v-for="item in utils" :key="item.title">
+                    <img src="#"><span>{{ item.title }}</span>
+                </div>
+            </div>
+            <div class="XF-hist-content">
+                <div class="detail-container">
+                    <div class="detail-con" v-for="item in histContent">
+                        <img src="#" alt="1"></img>{{ item.title }}<img src="#" alt="2"><img src="#" alt="3">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="unFold" @click="isFlod" v-show="!isShowHist">展开</div>
+        <div class="XF-choice">
+            <div class="online" @click="changeOnline"
+                :style="{ backgroundColor: isOnline ? 'rgb(230, 255, 212)' : 'white' }">
+                <img :src="earth" style="width: 15px;transform: translateY(16%);margin-right: 4px;">联网搜索
+            </div>
+            <div class="deep-think" @click="changDeepThink"
+                :style="{ backgroundColor: isDeepThink ? 'rgb(230, 255, 212)' : 'white' }">
+                <img :src="deepThink" style="width: 15px;transform: translateY(16%);margin-right: 4px;">深度思考
+            </div>
+        </div>
         <div class="XF-ask">
             <input class="XF-input" v-model="streamMessage" placeholder="随便问哦〃•ω‹〃"
                 @keydown.enter="handleChat_Stream" />
@@ -24,8 +58,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { createStreamConnection } from '@/utils/api/xunfei'
+import { } from '@element-plus/icons-vue'
+import earth from '@/assets/img/earth.svg'
+import deepThink from '@/assets/img/深度思考.svg'
 const streamMessage = ref('')  // 用户输入
 const streamResponse = ref('')  // 流式显示
 const showStream = ref(false)  // 流式显示是否开启
@@ -38,6 +75,41 @@ const currentResponse = ref('')  //当前接收到的回复
 const currentTypingIndex = ref(0)  //当前打字索引
 let typingInterval = null  //打字机定时器
 const isDone = ref(false)  //是否接收完毕
+
+//功能列表
+const utils = [
+    { img: "", title: 'AI搜索' },
+    { img: "", title: 'AI对话' },
+    { img: "", title: 'AI绘画' }
+]
+
+//历史会话
+const histContent = [
+    { id: 1, title: '上大学' },
+    { id: 2, title: '上高中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+    { id: 3, title: '上初中' },
+]
+
+//收起
+let isShowHist = ref(true)
+let isFlod = () => {
+    isShowHist.value = !isShowHist.value
+}
+
+//联网深度思考选中
+let isOnline = ref(false)
+let isDeepThink = ref(false)
+const changeOnline = () => { isOnline.value = !isOnline.value }
+const changDeepThink = () => { isDeepThink.value = !isDeepThink.value }
 
 // 监听 streamResponse, messageList 的变化，当有新内容时自动滚动
 watch([streamResponse, messageList], () => { scrollToBottom() })
@@ -82,6 +154,36 @@ const handleChat_Stream = () => {
     eventSource.onopen = () => []
     // 清空输入
     streamMessage.value = ''
+
+    /////////////////////////////////
+    const axios = require('axios');
+    axios.get('http://localhost:3000/stream', {
+        responseType: 'stream'
+    })
+        .then((response: any) => {
+            //监听data事件处理每个chunk
+            response.data.on('data', (chunk: any) => {
+                // 先检查是否是结束
+                if (chunk.data === '[DONE]') {
+                    // 接收完毕
+                    isDone.value = true
+                    // 关闭流式连接
+                    eventSource.close()
+                    return
+                }
+                // 后解析 JSON 数据
+                const data = JSON.parse(chunk.data)
+                // 不断获取内容
+                currentResponse.value += data.content
+            });
+            //监听end事件判断流的结束
+            response.data.on('end', () => {
+                console.log('Stream ended');
+            });
+        })
+        .catch((error: any) => {
+            console.error('Error:', error);
+        });
 }
 
 // 打字机效果
@@ -140,11 +242,11 @@ onMounted(() => {
 
 .XF-main {
     position: relative;
-    width: 375px;
+    width: clamp(0px, 60vw, 1000px);
     height: 88vh;
     background-color: rgb(250, 197, 197);
     border-radius: 12px;
-    outline: 3px solid rgb(162, 162, 162);
+    outline: 2px solid rgb(0, 0, 0);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -159,7 +261,7 @@ onMounted(() => {
         justify-content: flex-start;
         position: absolute;
         top: 10px;
-        bottom: 70px;
+        bottom: 109px;
         left: 5px;
         right: 5px;
         width: 100%;
@@ -173,7 +275,7 @@ onMounted(() => {
         &::-webkit-scrollbar-thumb {
             background-color: rgb(255, 255, 255);
             border-radius: 12px;
-            outline: 3px solid rgb(162, 162, 162);
+            outline: 2px solid rgb(0, 0, 0);
         }
 
         .user-zone {
@@ -187,6 +289,9 @@ onMounted(() => {
             margin: 5px 15px 5px 5px;
             outline: 2px solid rgb(246, 245, 245);
             font-weight: 600;
+            // word-wrap: break-word;
+            // white-space: pre-wrap;
+
         }
 
         .ai-zone {
@@ -217,10 +322,160 @@ onMounted(() => {
         }
     }
 
+    .XF-history {
+        position: absolute;
+        top: -2px;
+        left: 0;
+        transform: translateX(-100%);
+        max-height: 88vh;
+        width: clamp(230px, 20vw, 300px);
+        background-color: white;
+        background-color: rgb(250, 197, 197);
+        border-radius: 12px;
+        border: 2px solid rgb(0, 0, 0);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 20px;
+        align-items: center;
+        padding: 8px;
+        // height: 86vh;
+        // transition: height 3s linear;
+
+        .XF-hist-head {
+            display: flex;
+            // flex-direction: column;
+            justify-content: space-between;
+            width: 92%;
+
+            .XF-tou {
+                width: 50px;
+                object-fit: cover;
+            }
+
+            .XF-fold {}
+        }
+
+        .XF-hist-create {
+            width: 92%;
+            height: 36px;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            outline: 2px solid rgb(162, 162, 162);
+            border-radius: 12px;
+
+            .add {}
+
+            .add-title {}
+
+            .fast-create {}
+        }
+
+        .XF-hist-utils {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            width: 92%;
+            height: fit-content;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            outline: 2px solid rgb(162, 162, 162);
+            border-radius: 12px;
+            padding: 7px 0;
+            gap: 8px;
+
+            .utils-style {
+                display: flex;
+                justify-content: space-around;
+                width: 100%;
+            }
+        }
+
+        .XF-hist-content {
+            width: 92%;
+            height: 350px;
+            position: relative;
+            margin-bottom: 6px;
+
+            .detail-container {
+                overflow-y: auto;
+                background-color: white;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+                align-items: center;
+                outline: 2px solid rgb(162, 162, 162);
+                border-radius: 12px;
+                padding: 7px 0;
+                gap: 8px;
+                position: absolute;
+                width: 100%;
+                overflow-y: auto;
+                top: 0;
+                bottom: 0;
+
+                &::-webkit-scrollbar {
+                    width: 4px;
+                }
+
+                &::-webkit-scrollbar-thumb {
+                    background-color: rgb(255, 255, 255);
+                    border-radius: 12px;
+                    outline: 1px solid black;
+                }
+
+                .detail-con {
+                    width: 100%;
+                    display: flex;
+                    justify-content: space-around;
+                }
+            }
+
+        }
+
+    }
+
+    .unFold {
+        position: absolute;
+        top: -2px;
+        left: 0;
+        transform: translateX(-100%);
+
+    }
+
+    .XF-choice {
+        position: absolute;
+        bottom: 60px;
+        display: flex;
+        justify-content: flex-start;
+        gap: 12px;
+
+        .online {
+            margin-left: 15px;
+            font-size: 14px;
+            background-color: rgb(230, 255, 212);
+            border-radius: 12px;
+            padding: 7px;
+            transition: background-color 0.2s linear;
+        }
+
+        .deep-think {
+            font-size: 14px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 7px;
+            transition: background-color 0.2s linear;
+        }
+    }
 
     .XF-ask {
         position: absolute;
-        width: 370px;
+        width: 100%;
         height: 50px;
         display: flex;
         justify-content: space-around;
@@ -236,10 +491,11 @@ onMounted(() => {
             height: 70%;
             width: 60%;
             border-radius: 12px;
-            outline: 3px solid rgb(152, 152, 152);
+            outline: 2px solid rgb(0, 0, 0);
             border: none;
             .rem(margin-bottom, 0.5);
             padding-left: 10px;
+            margin-left: 2px;
 
             &:focus {
                 color: rgb(150, 26, 26);
