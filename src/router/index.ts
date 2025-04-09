@@ -9,6 +9,20 @@ const router = createRouter({
     {
       path: '/',
       component: () => import('@/views/home.vue'),
+      children: [
+        {
+          path: 'baseshow',
+          component: () => import('@/views/BaseShow.vue'),
+        },
+        {
+          path: 'treasure',
+          component: () => import('@/views/treasure.vue'),
+        },
+        {
+          path: 'xunfei',
+          component: () => import('@/views/XunFei2.0.vue'),
+        },
+      ],
     },
     {
       path: '/login',

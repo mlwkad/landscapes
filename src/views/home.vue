@@ -6,35 +6,23 @@
         </header>
         <div class="park-line"></div>
     </div>
-    <div v-if="activeId === 1 || activeSecId === 1">
-        <!-- <nice-show></nice-show> -->
-        <!-- <picture-one></picture-one> -->
-        <search></search>
-        <picture-pool></picture-pool>
-    </div>
-    <div v-if="activeId === 2 || activeSecId === 2">
-        <treasure></treasure>
-    </div>
-    <XunFei class="XF-position" v-if="activeId === 3"></XunFei>
+    <RouterView/>
     <div class="go-top" v-if="goTopShow" @click="goTop">回到顶部</div>
 </template>
 <script setup lang="ts">
-import search from '@/views/search.vue'
-import PicturePool from '@/views/PicturePool.vue'
-import XunFei from '@/views/XunFei.vue'
-import { useRouter } from 'vue-router'
-import { onMounted, onUnmounted, ref,defineAsyncComponent } from 'vue'
+import { useRouter,RouterView } from 'vue-router'
+import { onMounted, onUnmounted, ref } from 'vue'
 let activeId = ref(1)
-let activeSecId = ref(1)
 let goTopShow = ref(false)
-let header = [{ id: 1, secId: 1, name: '探索' }, { id: 2, secId: 2, name: '收藏' }, { id: 3, name: '问问' }, { id: 4, name: '登录' }]
+let header = [{ id: 1, name: '探索' }, { id: 2, name: '收藏' }, { id: 3, name: '问问' }, { id: 4, name: '登录' }]
 //动态引入 --> 分隔代码
-const treasure = defineAsyncComponent(() => import('@/views/treasure.vue'))
+// const treasure = defineAsyncComponent(() => import('@/views/treasure.vue'))
 const router = useRouter()
 const go = (item: any) => {
     activeId.value = item.id
-    if (item.id === 1) activeSecId.value = item.secId
-    if (item.id === 2) activeSecId.value = item.secId    
+    if (item.id === 1) router.push({ path: '/baseshow' })
+    if (item.id === 2) router.push({ path: '/treasure' })
+    if (item.id === 3) router.push({ path: '/xunfei' })
     if (item.id === 4) router.push({ path: '/login' })
 }
 
@@ -115,50 +103,6 @@ onMounted(() => {
         height: 1px;
         background-color: #000000;
         .rem(margin-top, 0.4);
-    }
-}
-
-.XF-position {
-    z-index: 9999;
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    animation: showWenWen 0.3s linear forwards;
-}
-
-@keyframes showWenWen {
-    0% {
-        opacity: 0.5;
-        scale: 0.7;
-        transform: translateY(50%);
-    }
-
-    100% {
-        opacity: 1;
-        scale: 1;
-        transform: translateX(0);
-    }
-}
-
-.go-top {
-    position: fixed;
-    bottom: 0px;
-    right: 20px;
-    background-color: black;
-    color: white;
-    .rem(padding, 0.5);
-    border-radius: 12px 12px 0 0;
-    cursor: pointer;
-    animation: goTop 0.7s ease forwards;
-}
-
-@keyframes goTop {
-    0% {
-        transform: translateY(20px);
-    }
-
-    100% {
-        transform: translateY(0px);
     }
 }
 </style>
