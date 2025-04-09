@@ -92,9 +92,10 @@ const handleChat_Stream = () => {
         const data = JSON.parse(event.data)
         // 不断获取内容
         currentResponse.value += data.content
-        // streamResponseOnline.value += data.references
-        console.log('回答',data.onlineInfo)
-        // console.log(': 接收次数')
+        if (data.onlineInfo) {
+            streamResponseOnline.value = data.onlineInfo
+            console.log('回答', data.onlineInfo)
+        }        
     }
     // 处理错误
     eventSource.onerror = () => eventSource.close()

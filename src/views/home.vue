@@ -29,6 +29,7 @@ const go = (item: any) => {
 const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
 onMounted(() => {
+    router.push({ path: '/baseshow' })
     const handleScroll = () => {
         if (window.scrollY > 3000) goTopShow.value = true
         else goTopShow.value = false

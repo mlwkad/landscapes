@@ -57,7 +57,7 @@
             <!-- 搜索框 -->
             <div class="input-area">
                 <div class="input-container">
-                    <input type="text" placeholder="发消息，输入 @ 选择技能或/选择文件" v-model="streamMessage"/>
+                    <input type="text" placeholder="发消息，输入 @ 选择技能或/选择文件" v-model="streamMessage" />
                     <div class="input-actions">
                         <button class="action-btn"
                             :style="{ backgroundColor: isOnline ? '#d4ffcaaf' : '#ffffff', color: isOnline ? '#1eba13' : 'rgb(202, 202, 202)', outline: isOnline ? '1px solid #1eba13' : '1px solid #dddddd' }"
@@ -136,6 +136,51 @@ const history = ref([{
     content: '早上好，有什么我能帮你的吗？',
     time: '2021-01-01 12:00:00',
     type: 'user'
+}, {
+    id: 3,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'ai'
+}, {
+    id: 4,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'user'
+}, {
+    id: 5,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'ai'
+}, {
+    id: 3,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'ai'
+}, {
+    id: 4,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'user'
+}, {
+    id: 5,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'ai'
+}, {
+    id: 3,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'ai'
+}, {
+    id: 4,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'user'
+}, {
+    id: 5,
+    content: '早上好，有什么我能帮你的吗？',
+    time: '2021-01-01 12:00:00',
+    type: 'ai'
 }])
 
 // 完成流式输出
@@ -178,7 +223,7 @@ const clearStreamMessage = () => streamMessage = null
 // Styles
 .chat-container {
     display: flex;
-    height: 92vh;
+    height: 90vh;
     background-color: @background-color;
     overflow-y: auto;
 }
@@ -360,14 +405,14 @@ const clearStreamMessage = () => streamMessage = null
 .main-content {
     flex: 1;
     .flex-column();
-    padding: 24px;
+    padding: 24px 24px 0;
     overflow-y: hidden;
     position: relative;
     width: 100%;
 
     .input-area {
         margin-top: auto;
-        padding: 16px 0;
+        padding: 16px 0 0 0;
 
         .input-container {
             .flex-center();
