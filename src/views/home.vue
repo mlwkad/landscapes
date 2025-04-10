@@ -6,11 +6,11 @@
         </header>
         <div class="park-line"></div>
     </div>
-    <RouterView/>
+    <RouterView />
     <div class="go-top" v-if="goTopShow" @click="goTop">回到顶部</div>
 </template>
 <script setup lang="ts">
-import { useRouter,RouterView } from 'vue-router'
+import { useRouter, RouterView } from 'vue-router'
 import { onMounted, onUnmounted, ref } from 'vue'
 let activeId = ref(1)
 let goTopShow = ref(false)
@@ -20,6 +20,7 @@ let header = [{ id: 1, name: '探索' }, { id: 2, name: '收藏' }, { id: 3, nam
 const router = useRouter()
 const go = (item: any) => {
     activeId.value = item.id
+    if (item.id != 4) sessionStorage.setItem('activeId', item.id)
     if (item.id === 1) router.push({ path: '/baseshow' })
     if (item.id === 2) router.push({ path: '/treasure' })
     if (item.id === 3) router.push({ path: '/xunfei' })
@@ -29,7 +30,18 @@ const go = (item: any) => {
 const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
 onMounted(() => {
-    router.push({ path: '/baseshow' })
+    if (sessionStorage.getItem('activeId') === '1') {
+        activeId.value = 1
+        router.push({ path: '/baseshow' })
+    }
+    if (sessionStorage.getItem('activeId') === '2') {
+        activeId.value = 2
+        router.push({ path: '/treasure' })
+    }
+    if (sessionStorage.getItem('activeId') === '3') {
+        activeId.value = 3
+        router.push({ path: '/xunfei' })
+    }
     const handleScroll = () => {
         if (window.scrollY > 3000) goTopShow.value = true
         else goTopShow.value = false

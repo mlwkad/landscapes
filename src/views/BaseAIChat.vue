@@ -6,16 +6,20 @@
                 <img :src="copy" alt="复制" class="copy-btn" @click="copyContent(item.content)">
                 <img :src="retry" alt="重试" class="retry-btn" @click="retryContent(item.content)">
             </div>
+            <div v-else-if="item.role === 'online'" class="online-detail">
+                <div class="online-alert">参考资料:</div>
+                <div v-for="info, index in item.content" style="margin: 10px 0 2px;">
+                    {{ index + 1 }} . <a :href="info.url" target="_blank">{{ info.title }}</a>
+                </div>
+            </div>
             <div v-else style="position: relative;">
-                <pre>{{ item.content }}</pre> <!--pre:保留空格和换行-->
+                <pre v-html="item.content"></pre> <!--直接显示已处理过的内容-->
                 <img :src="copy" alt="复制" class="copy-btn" @click="copyContent(item.content)">
-                <!-- <img :src="retry" alt="重试" class="retry-btn" @click="retryContent(item.content)"> -->
             </div>
         </div>
         <!-- 回复完成之前显示流式,流式回复完成之后隐藏,并将完整回复保存到 messageList,该回复又被显示 -->
         <div v-if="showStream" class="ai-zone">
-            <pre>{{ streamResponse }}</pre>
-            <!-- <pre>{{ streamResponseOnline }}</pre> -->
+            <pre v-html="formatAIResponse(streamResponse)"></pre>
         </div>
     </div>
 </template>
@@ -24,11 +28,12 @@ import copy from '@/assets/img/复制.svg'
 import retry from '@/assets/img/重试.svg'
 import { ref, watch, onMounted, nextTick } from 'vue'
 import { createStreamConnection } from '@/utils/api/xunfei'
+import { updateContent, getContent } from '@/utils/api/xunfei'
 
 // 流式聊天
 let retryCon = ref('')  //重新问话
 const streamResponse = ref('')  // 流式显示对话结果
-const streamResponseOnline = ref('')  // 流式显示联网搜索结果
+const streamRespOnline = ref([])  // 当前问题的联网信息
 const showStream = ref(false)  // 流式显示是否开启
 let eventSource = null  // 流式连接
 let messageList = ref<any>([])  // 消息列表
@@ -43,11 +48,13 @@ const isDone = ref(false)  //是否接收完毕
 // props
 const props = defineProps({
     streamMessage: { type: String, default: '' },
-    startOutPut: { type: Boolean, default: false }
+    startOutPut: { type: Boolean, default: false },
+    clearContent: { type: Boolean, default: false },
+    id: { type: Number, default: 0 }, // 当前对话id
 })
 
 // emit
-const emit = defineEmits(['retryContent', 'finishOutPut', 'clearStreamMessage'])
+const emit = defineEmits(['retryContent', 'finishOutPut', 'clearStreamMessage', 'clearCon'])
 // 成功启动流式输出
 const finishOutPut = () => emit('finishOutPut')
 //清空输入
@@ -55,13 +62,34 @@ const clearStreamMessage = () => emit('clearStreamMessage')
 
 // 监听 streamResponse, messageList 的变化，当有新内容时自动滚动
 watch([streamResponse, messageList], () => { scrollToBottom() })
+watch(() => props.id, (newVal) => { if (newVal) getContent({ id: newVal }).then((res: any) => messageList.value = res.data) })
+watch(messageList, () => { if (props.id) updateContent({ id: props.id, list: messageList.value }) })
 watch(() => props.startOutPut, (newVal) => { if (newVal && props.streamMessage) handleChat_Stream() })
+watch(() => props.clearContent, (newVal) => {
+    if (newVal) localStorage.removeItem('messageList')
+    messageList.value = []
+    emit('clearCon')
+})
+
 
 //scrollY 是一个全局属性，表示整个窗口在垂直方向上已滚动的距离,只读
 //scrollTop 是某个元素在垂直方向上已滚动的距离，只读
 //scrollHeight 是某个元素的实际高度，包括溢出的文本高度只读
 //滚动到底部的函数
 const scrollToBottom = () => nextTick(() => chatContainer.value.scrollTop = chatContainer.value.scrollHeight)
+
+// 格式化AI回复，将[^1^]等引用转换为可点击的链接
+const formatAIResponse = (text: string) => {
+    if (!text) return text
+    // 替换引用标记为HTML链接
+    return text.replace(/\[\^(\d+)\^\]/g, (match, index) => {  // match:符合正则的完整字符串,eg：[^4^], (\d+)捕获内容, index:对应的内容,但是是字符串，eg："4"
+        const infoIndex = parseInt(index) - 1
+        if (streamRespOnline.value && infoIndex >= 0 && infoIndex < streamRespOnline.value.length) {
+            return `<a href="${streamRespOnline.value[infoIndex].url}" target="_blank" class="reference-link">${index}</a>`
+        }
+        return match
+    })
+}
 
 //流式聊天
 const handleChat_Stream = () => {
@@ -71,6 +99,8 @@ const handleChat_Stream = () => {
     showStream.value = true
     // 清空之前的响应    
     streamResponse.value = ''
+    // 清空之前的联网信息
+    streamRespOnline.value = []
     // 保留用户信息
     saveMessage('user', props.streamMessage || retryCon.value)
     // 开启打字机
@@ -90,12 +120,12 @@ const handleChat_Stream = () => {
         }
         // 后解析 JSON 数据
         const data = JSON.parse(event.data)
-        // 不断获取内容
-        currentResponse.value += data.content
+        // 不断获取内容 
         if (data.onlineInfo) {
-            streamResponseOnline.value = data.onlineInfo
-            console.log('回答', data.onlineInfo)
-        }        
+            streamRespOnline.value = data.onlineInfo  // 保留当前问题的联网信息
+            saveMessage('online', data.onlineInfo)
+        }
+        else { currentResponse.value += data.content }
     }
     // 处理错误
     eventSource.onerror = () => eventSource.close()
@@ -167,7 +197,10 @@ const writeFontMachine = () => {
 
 //保留用户/AI信息
 const saveMessage = (role: string, content: string) => {
-    messageList.value.push({ role: role, content: content })
+    let finalContent = content
+    // AI回复且有联网信息，则格式化后再存入
+    if (role === 'ai' && streamRespOnline.value && streamRespOnline.value.length > 0) finalContent = formatAIResponse(content)
+    messageList.value.push({ role: role, content: finalContent })
     localStorage.setItem('messageList', JSON.stringify(messageList.value))
 }
 
@@ -182,6 +215,7 @@ const retryContent = (content: string) => {
 
 onMounted(() => {
     messageList.value = JSON.parse(localStorage.getItem('messageList') || '[]')
+    getContent({ id: props.id }).then((res: any) => messageList.value = res.data)
     // 初始加载时滚动到底部
     scrollToBottom()
 })
@@ -294,6 +328,27 @@ onMounted(() => {
             /* 使用父元素的字体粗细 */
         }
 
+        // 如果设置了scoped，使用:deep()选择器确保动态插入的内容也能被样式影响
+        :deep(.reference-link) {
+            text-decoration: none;
+            color: rgb(255, 255, 255);
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 3px;
+            background-color: rgb(0, 0, 0);
+            border-radius: 9px;
+            margin-left: 3px;
+            transition: color 0.3s ease, background-color 0.3s ease;
+
+            &:hover {
+                text-decoration: none;
+                background-color: rgb(255, 255, 255);
+                color: rgb(0, 0, 0);
+                border-radius: 9px;
+                border: 2px solid rgb(118, 118, 118);
+            }
+        }
+
         .copy-btn {
             position: absolute;
             right: -30px;
@@ -309,6 +364,29 @@ onMounted(() => {
 
             &:hover {
                 background-color: #ececec;
+            }
+        }
+
+        .online-alert {
+            font-size: 20px;
+            color: black;
+            // background: linear-gradient(to right, rgb(236, 99, 99), rgb(255, 0, 111), rgb(110, 13, 13), rgb(0, 0, 0));
+            // background-clip: text;
+            // width: fit-content;
+        }
+
+        .online-detail {
+            position: relative;
+
+            a {
+                text-decoration: none;
+                color: transparent;
+                background: linear-gradient(to right, rgb(236, 99, 99), rgb(255, 0, 111), rgb(110, 13, 13), rgb(0, 0, 0));
+                background-clip: text;
+                width: fit-content;
+                &:hover {
+                    text-decoration: underline;
+                }
             }
         }
     }
