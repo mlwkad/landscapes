@@ -103,7 +103,6 @@ import clearInput from '@/assets/img/clearInput.svg'
 import { ref, onMounted } from 'vue'
 import BaseAIChat from '@/views/BaseAIChat.vue'
 import { getAllContent, addToAllContent, onlineSearch } from '@/utils/api/xunfei'
-import { id } from 'element-plus/es/locale'
 
 let startOutPut = ref(false)  //传递一次输入内容
 let clearContent = ref(false)  //清空对话内容
@@ -176,6 +175,7 @@ const addContent = () => {
     addToAllContent({ id: Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000, content: '' })
     getAllContent().then((res: any) => {
         history.value = res.data
+        curID.value = res.data[0].id
     })
 }
 
@@ -191,7 +191,11 @@ const clearCon = () => clearContent.value = false
 onMounted(() => {
     onlineSearch(isOnline.value)
     getAllContent().then((res: any) => {
-        history.value = res.data
+        if (res.data.length > 0) {
+            history.value = res.data
+            curID.value = res.data[0].id
+        }
+        else addContent()
     })
 })
 </script>
