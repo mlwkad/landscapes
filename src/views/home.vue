@@ -23,7 +23,7 @@ let header = [{ id: 1, name: t('explore') }, { id: 2, name: t('treasure') }, { i
 const router = useRouter()
 const go = (item: any) => {
     activeId.value = item.id
-    if (item.id != 4) sessionStorage.setItem('activeId', item.id)
+    if (item.id != 4 && item.id != 5) sessionStorage.setItem('activeId', item.id)
     if (item.id === 1) router.push({ path: '/baseshow' })
     if (item.id === 2) router.push({ path: '/treasure' })
     if (item.id === 3) router.push({ path: '/xunfei' })
@@ -31,12 +31,12 @@ const go = (item: any) => {
         if (localStorage.getItem('qweee-token') === null) router.push({ path: '/login' })
         else {
             localStorage.removeItem('qweee-token')
-            window.location.reload()
+            window.location.reload()  //刷新当前页面
         }
     }
     if (item.id === 5) {
         localStorage.setItem('qweee-language', localStorage.getItem('qweee-language') === 'zh' ? 'en' : 'zh')
-        window.location.reload()  //刷新当前页面
+            window.location.reload()  //刷新当前页面
     }
 }
 
