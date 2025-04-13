@@ -19,21 +19,21 @@
                     <img :src="currentImage.url" class="detail-image">
                     <div class="image-info">
                         <div class="info-row">
-                            <span class="info-label">点击数：</span>
+                            <span class="info-label">{{ t('dainjishu') }}：</span>
                             <span class="info-value">{{ currentImage.clickNum || 0 }}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">收藏数：</span>
+                            <span class="info-label">{{ t('shoucangshu') }}：</span>
                             <span class="info-value">{{ currentImage.treasureNum || 0 }}</span>
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn like-btn" @click="isliked(currentImage)">
                                 <img :src="currentImage.isLiked === 0 ? heart : filledHeart" class="btn-icon">
-                                {{ currentImage.isLiked === 0 ? '收藏' : '已收藏' }}
+                                {{ currentImage.isLiked === 0 ? t('treasure') : t('treasured') }}
                             </button>
                             <button class="action-btn download-btn" @click="downloadImage(currentImage.url)">
                                 <img :src="download" class="btn-icon">
-                                下载
+                                {{ t('xiazai') }}
                             </button>
                         </div>
                     </div>
@@ -43,7 +43,7 @@
     </div>
 
     <div class="alert" id="alertId">
-        收藏成功
+        {{ t('treasureSuccess') }}
     </div>
 </template>
 
@@ -54,6 +54,9 @@ import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import download from '@/assets/img/下载.svg'
 import { isLiked } from '@/utils/api/picture';
+import { useI18n } from 'vue-i18n'
+import router from '@/router'
+const { t } = useI18n()
 
 let homeShowPictureList = ref<any>([])
 let isShowRow = ref(6)  //一行展示几个
@@ -78,6 +81,10 @@ onMounted(() => {
 })
 
 const isliked = (item: any) => {
+    if (localStorage.getItem('qweee-token') === null) {
+        router.push({ path: '/login' })
+        return
+    }
     isLiked({
         id: item.id,
         isLiked: item.isLiked === 0 ? 1 : 0
@@ -93,6 +100,10 @@ const isliked = (item: any) => {
 }
 
 const downloadImage = async (url: string) => {
+    if (localStorage.getItem('qweee-token') === null) {
+        router.push({ path: '/login' })
+        return
+    }
     try {
         const response = await fetch(url)
         const blob = await response.blob()

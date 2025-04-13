@@ -1,29 +1,51 @@
 {
-    "person": {
-        "name0": "All",
-        "name1": "Rhein",
-        "name2": "Kalan",
-        "name3": "Lengguang",
-        "name4": "Deyan",
-        "name5": "Shenhai"
-    },
-    "list": {
-        "content1": {
-            "first": "Fashion",
-            "second": "Era",
-            "third": "0011Brith",
-            "fourth": "Bingyuan",
-            "fifth": "Shanhu",
-            "sixth": "BirthLand"
-        },
-        "content2": {
-            "first": "Rank",
-            "second": "Strength"
-        },
-        "content3": {
-            "first": "Browse",
-            "second": "Material"
-        }
-    },
-    "guan-wang": "Official Website"
+    "explore": "Explore",
+    "search": "Search content",
+    "wenwen": "WenWen",
+    "treasure": "Collect",
+    "treasured": "Collected",
+    "treasureSuccess": "Collected successfully",
+    "cancelTreasure": "Cancel collection",
+    "xiazai": "Download",
+    "dainjishu": "Click",
+    "shoucangshu": "Collect",
+    "login": "Login",
+    "loginOut": "Logout",
+    "language": "Language",
+    "ziranfengjing": "Natural scenery",
+    "haiyang": "Ocean",
+    "shandong": "Desert",
+    "huafei": "Flower",
+    "yejing": "Night view",
+    "dongwu": "Animal",
+    "liming": "Dawn",
+    "senlin": "Forest",
+    "meishi": "Food",
+    "jianzhu": "Building",
+    "xingkong": "Starry sky",
+    "shuiping": "Water view",
+    "shangmai": "Mountain",
+    "zhiwu": "Plant",
+    "lvxing": "Travel",
+    "chuxuang": "Abstract",
+    "keji": "Technology",
+    "jingxuan": "Selected",
+    "zuixin": "Latest",
+    "remen": "Popular",
+    "haoliang": "Massive materials, helping you tell unique stories with pictures.",
+    "yijing": "Enter the realm of creative boundless, meet the ocean of excellent images",
+    "huidaodingbu": "Back to top",
+    "shangyiye": "Previous page",
+    "xiayiye": "Next page",
+    "dian": "Page",
+    "ye": "",
+    "xinhuadonghua": "New conversation",
+    "lishidihua": "Historical conversation",
+    "lianwngsousuo": "Online",
+    "shishi": "",
+    "AIsousuo": "AI Search",
+    "AIliaotian": "AI Conversation",
+    "AI": "Reference materials:",
+    "downloadSuccess": "Download successful",
+    "noResults": "No results found"
 }

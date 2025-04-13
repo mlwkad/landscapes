@@ -15,10 +15,24 @@ const router = createRouter({
           component: () => import('@/views/BaseShow.vue'),
         },
         {
+          beforeEnter: (to, from, next) => {
+            if (localStorage.getItem('qweee-token') === null) {
+              next({ path: '/login' })
+            } else {
+              next()
+            }
+          },
           path: 'treasure',
           component: () => import('@/views/treasure.vue'),
         },
         {
+          beforeEnter: (to, from, next) => {
+            if (localStorage.getItem('qweee-token') === null) {
+              next({ path: '/login' })
+            } else {
+              next()
+            }
+          },
           path: 'xunfei',
           component: () => import('@/views/XunFei2.0.vue'),
         },

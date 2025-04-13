@@ -44,7 +44,7 @@ const gohome = () => {
         username: username.value,
         password: password.value
     }).then((res: any) => {
-        console.log('token:',res.token);
+        localStorage.setItem('qweee-token', res.token)
         const loginIcon = document.querySelector('.login-icon-animation').classList.add('login-icon-animation-go')
         const loginFont = document.querySelector('.button-font-animation').classList.add('button-font-animation-go')
         const alertItem = document.querySelector('.alert')

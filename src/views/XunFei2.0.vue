@@ -9,26 +9,25 @@
             </div>
 
             <!-- 新对话 -->
-            <button class="new-chat-btn" @click="isShowMenu = !isShowMenu">
+            <button class="new-chat-btn" @mouseenter="isShowMenu = true" @mouseleave="isShowMenu = false;">
                 <span class="plus-icon">+</span>
-                新对话
+                {{ t('xinhuadonghua') }}
                 <span class="shortcut">⌘N</span>
                 <div class="menu-items" v-if="isShowMenu">
-                    <div class="menu-item">
-                        <img :src="sousuo" alt="搜索" class="icon-search" @click.stop="isShowMenu = false, addContent()">
-                        AI 搜索
+                    <div class="menu-item" @click="addContent">
+                        <img :src="sousuo" alt="搜索" class="icon-search">
+                        {{ t('AIsousuo') }}
                     </div>
-                    <div class="menu-item">
-                        <img :src="liaotianjilu" alt="聊天记录" class="icon-liaotianjilu"
-                            @click.stop="isShowMenu = false, addContent()">
-                        AI 对话
+                    <div class="menu-item" @click="addContent">
+                        <img :src="liaotianjilu" alt="聊天记录" class="icon-liaotianjilu">
+                        {{ t('AIliaotian') }}
                     </div>
                 </div>
             </button>
 
             <!-- 历史对话 -->
             <div class="history-section">
-                <h3>历史对话</h3>
+                <h3>{{ t('lishidihua') }}</h3>
                 <div class="history-items">
                     <!-- Add history items here -->
                     <div class="history-item" v-for="item in history" :key="item.id">
@@ -39,11 +38,12 @@
                             }">
                                 <img :src="information" alt="User Avatar" class="avatar"
                                     style="width: 14px;transform: translateY(1px);margin-right: 2px;">
-                                {{ item.content }}
-                                <img :src="edit" alt="编辑" class="edit-icon"
-                                    style="width: 16px;transform: translateY(1px);margin-left: 2px;">
+                                {{ item.content && item.content.length > 0 ? item.content[0].content : t('xinhuadonghua') }}
+                                <!-- <img :src="edit" alt="编辑" class="edit-icon"
+                                    style="width: 16px;transform: translateY(1px);margin-left: 2px;"> -->
                                 <img :src="deleteIcon" alt="删除" class="delete-icon"
-                                    style="width: 20px;transform: translateY(1px);margin-left: 2px;">
+                                    style="width: 20px;transform: translateY(1px);margin-left: 2px;"
+                                    @click.stop="deleteHist(item.id)">
                             </span>
                         </div>
                     </div>
@@ -53,20 +53,20 @@
 
         <!-- 聊天区域 -->
         <div class="main-content">
-            <BaseAIChat :streamMessage="streamMessage" :startOutPut="startOutPut" :clearContent="clearContent"
-                :id="curID" @finishOutPut="finishOutPut" @clearStreamMessage="clearStreamMessage" @clearCon="clearCon">
+            <BaseAIChat :streamMessage="streamMessage" :startOutPut="startOutPut" :id="curID"
+                @finishOutPut="finishOutPut" @clearStreamMessage="clearStreamMessage" @updateHistName="updateHistName">
             </BaseAIChat>
             <!-- 搜索框 -->
             <div class="input-area">
                 <div class="input-container">
-                    <input type="text" placeholder="试试 ‘冰岛蓝冰洞’ 或 ‘新西兰萤火虫洞’" v-model="streamMessage" />
+                    <input type="text" :placeholder="t('shishi')" v-model="streamMessage" />
                     <div class="input-actions">
                         <button class="action-btn"
                             :style="{ backgroundColor: isOnline ? '#d4ffcaaf' : '#ffffff', color: isOnline ? '#1eba13' : 'rgb(202, 202, 202)', outline: isOnline ? '1px solid #1eba13' : '1px solid #dddddd' }"
                             @click="changeOnline">
                             <img :src="online" class="icon-attach" style="width: 16px;"
                                 :style="{ stroke: isOnline ? '#1eba13' : 'rgb(202, 202, 202)' }">
-                            联网搜索
+                            {{ t('lianwngsousuo') }}
                         </button>
                         <!-- <button class="action-btn"
                             :style="{ backgroundColor: isDeepThink ? '#d4ffcaaf' : '#ffffff', color: isDeepThink ? '#1eba13' : 'rgb(202, 202, 202)', outline: isDeepThink ? '1px solid #1eba13' : '1px solid #dddddd' }"
@@ -76,11 +76,11 @@
                             深度思考
                         </button> -->
                     </div>
-                    <button style="position: absolute;right:92px;border: none;" class="submit"
+                    <button style="position: absolute;right:49px;border: none;" class="submit"
                         @click="streamMessage = ''" v-if="streamMessage"><img :src="clearInput"
                             class="clearInput"></button>
-                    <button style="position: absolute;right:50px;" class="submit" @click="clearContent = true"><img
-                            :src="clear" class="clear"></button>
+                    <!-- <button style="position: absolute;right:50px;" class="submit" @click="clearContent = true"><img
+                            :src="clear" class="clear"></button> -->
                     <button style="position: absolute;right:6px;" class="submit" @click="startOutPut = true"><img
                             :src="fasong" class="fasong"></button>
                 </div>
@@ -91,21 +91,22 @@
 
 <script setup lang="ts">
 import information from '@/assets/img/聊天记录.svg'
-import edit from '@/assets/img/编辑.svg'
+// import edit from '@/assets/img/编辑.svg'
 import deleteIcon from '@/assets/img/删除.svg'
 import fasong from '@/assets/img/fasong1.svg'
 import online from '@/assets/img/earth.svg'
-import deepThink from '@/assets/img/深度思考.svg'
+// import deepThink from '@/assets/img/深度思考.svg'
 import sousuo from '@/assets/img/搜索-copy.svg'
 import liaotianjilu from '@/assets/img/聊天记录.svg'
-import clear from '@/assets/img/清空.svg'
+// import clear from '@/assets/img/清空.svg'
 import clearInput from '@/assets/img/clearInput.svg'
 import { ref, onMounted } from 'vue'
 import BaseAIChat from '@/views/BaseAIChat.vue'
-import { getAllContent, addToAllContent, onlineSearch } from '@/utils/api/xunfei'
+import { getAllContent, addToAllContent, onlineSearch, deleteContent } from '@/utils/api/xunfei'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 let startOutPut = ref(false)  //传递一次输入内容
-let clearContent = ref(false)  //清空对话内容
 const isShowMenu = ref(false)  // 是否显示菜单
 let streamMessage = ref('')  // 用户输入
 
@@ -120,63 +121,36 @@ const changDeepThink = () => { isDeepThink.value = !isDeepThink.value }
 
 // 历史对话
 let curID = ref(1)
-const history = ref([{
-    id: 1,
-    content: '早上好，有什么我能帮你的吗？有什么我能帮你的吗？',
-}, {
-    id: 2,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 3,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 4,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 5,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 6,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 3,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 4,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 5,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 3,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 4,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 5,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 3,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 4,
-    content: '早上好，有什么我能帮你的吗？',
-}, {
-    id: 5,
-    content: '早上好，有什么我能帮你的吗？',
-}])
+const history = ref<any>([])
 
 // 跳转到具体对话
-const goDetail = (id: any) => curID.value = id
+const goDetail = (id: any) => {
+    curID.value = id
+}
+
+// 删除对话
+const deleteHist = async (id: any) => {
+    await deleteContent(id)
+    history.value = history.value.filter((item: any) => item.id !== id)
+    if (history.value.length == 0) addContent()
+    else {
+        getAllContent().then((res: any) => {
+            history.value = res
+            curID.value = res[0].id
+        })
+    }
+}
 
 // 添加对话
 const addContent = () => {
-    addToAllContent({ id: Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000, content: '' })
-    getAllContent().then((res: any) => {
-        history.value = res.data
-        curID.value = res.data[0].id
+    isShowMenu.value = false
+    addToAllContent({ id: Number(new Date().getTime().toString().slice(-7)), content: [] }).then(() => {
+        getAllContent().then((res: any) => {
+            history.value = res
+            curID.value = res[0].id
+        })
     })
+
 }
 
 // 完成流式输出
@@ -185,15 +159,15 @@ const finishOutPut = () => startOutPut.value = false
 //清空输入
 const clearStreamMessage = () => streamMessage = null
 
-//清空对话
-const clearCon = () => clearContent.value = false
+// 更新对话名称
+const updateHistName = () => getAllContent().then((res: any) => history.value = res)
 
 onMounted(() => {
     onlineSearch(isOnline.value)
     getAllContent().then((res: any) => {
-        if (res.data.length > 0) {
-            history.value = res.data
-            curID.value = res.data[0].id
+        if (res.length > 0) {
+            history.value = res
+            curID.value = res[0].id
         }
         else addContent()
     })

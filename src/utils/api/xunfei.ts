@@ -15,6 +15,7 @@ export function createStreamConnection(message: string) {
    return new EventSource(`/api/chat/stream?message=${encodeURIComponent(message)}`);
 }
 
+// 是否联网搜索
 export function onlineSearch(isSure: boolean) {
    return request({
       method: 'get',
@@ -22,6 +23,7 @@ export function onlineSearch(isSure: boolean) {
    })
 }
 
+// 获取所有历史对话
 export function getAllContent() {
    return request({
       method: 'get',
@@ -29,6 +31,7 @@ export function getAllContent() {
    })
 }
 
+// 添加对话
 export function addToAllContent(data: any) {
    return request({
       method: 'post',
@@ -37,6 +40,15 @@ export function addToAllContent(data: any) {
    })
 }
 
+// 删除对话
+export function deleteContent(id: any) {
+   return request({
+      method: 'delete',
+      url: `/api/chat/deleteContent/${id}`
+   })
+}
+
+// 获取具体对话
 export function getContent(id: any) {
    return request({
       method: 'get',
@@ -44,6 +56,7 @@ export function getContent(id: any) {
    })
 }
 
+// 更新对话
 export function updateContent(data: any) {
    return request({
       method: 'put',

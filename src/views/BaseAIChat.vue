@@ -7,7 +7,7 @@
                 <img :src="retry" alt="重试" class="retry-btn" @click="retryContent(item.content)">
             </div>
             <div v-else-if="item.role === 'online'" class="online-detail">
-                <div class="online-alert">参考资料:</div>
+                <div class="online-alert">{{ t('AI') }}</div>
                 <div v-for="info, index in item.content" style="margin: 10px 0 2px;">
                     {{ index + 1 }} . <a :href="info.url" target="_blank">{{ info.title }}</a>
                 </div>
@@ -28,7 +28,9 @@ import copy from '@/assets/img/复制.svg'
 import retry from '@/assets/img/重试.svg'
 import { ref, watch, onMounted, nextTick } from 'vue'
 import { createStreamConnection } from '@/utils/api/xunfei'
-import { updateContent, getContent } from '@/utils/api/xunfei'
+import { updateContent, getContent, getAllContent } from '@/utils/api/xunfei'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 // 流式聊天
 let retryCon = ref('')  //重新问话
@@ -49,28 +51,22 @@ const isDone = ref(false)  //是否接收完毕
 const props = defineProps({
     streamMessage: { type: String, default: '' },
     startOutPut: { type: Boolean, default: false },
-    clearContent: { type: Boolean, default: false },
     id: { type: Number, default: 0 }, // 当前对话id
 })
 
 // emit
-const emit = defineEmits(['retryContent', 'finishOutPut', 'clearStreamMessage', 'clearCon'])
+const emit = defineEmits(['retryContent', 'finishOutPut', 'clearStreamMessage', 'clearCon', 'updateHistName'])
 // 成功启动流式输出
 const finishOutPut = () => emit('finishOutPut')
 //清空输入
 const clearStreamMessage = () => emit('clearStreamMessage')
+// 更新对话名称
+const updateHistName = () => emit('updateHistName')
 
 // 监听 streamResponse, messageList 的变化，当有新内容时自动滚动
 watch([streamResponse, messageList], () => { scrollToBottom() })
-watch(() => props.id, (newVal) => { if (newVal) getContent({ id: newVal }).then((res: any) => messageList.value = res.data) })
-watch(messageList, () => { if (props.id) updateContent({ id: props.id, list: messageList.value }) })
+watch(() => props.id, (newVal) => { if (newVal) getContent(newVal).then((res: any) => messageList.value = res.content) })
 watch(() => props.startOutPut, (newVal) => { if (newVal && props.streamMessage) handleChat_Stream() })
-watch(() => props.clearContent, (newVal) => {
-    if (newVal) localStorage.removeItem('messageList')
-    messageList.value = []
-    emit('clearCon')
-})
-
 
 //scrollY 是一个全局属性，表示整个窗口在垂直方向上已滚动的距离,只读
 //scrollTop 是某个元素在垂直方向上已滚动的距离，只读
@@ -81,6 +77,8 @@ const scrollToBottom = () => nextTick(() => chatContainer.value.scrollTop = chat
 // 格式化AI回复，将[^1^]等引用转换为可点击的链接
 const formatAIResponse = (text: string) => {
     if (!text) return text
+    // 先移除 * 和 # 符号
+    text = text.replace(/[*#《》]/g, '')
     // 替换引用标记为HTML链接
     return text.replace(/\[\^(\d+)\^\]/g, (match, index) => {  // match:符合正则的完整字符串,eg：[^4^], (\d+)捕获内容, index:对应的内容,但是是字符串，eg："4"
         const infoIndex = parseInt(index) - 1
@@ -133,35 +131,6 @@ const handleChat_Stream = () => {
     eventSource.onopen = () => []
     //清空
     clearStreamMessage()
-    /////////////////////////////////
-    // const axios = require('axios');
-    // axios.get('http://localhost:3000/stream', {
-    //     responseType: 'stream'
-    // })
-    //     .then((response: any) => {
-    //         //监听data事件处理每个chunk
-    //         response.data.on('data', (chunk: any) => {
-    //             // 先检查是否是结束
-    //             if (chunk.data === '[DONE]') {
-    //                 // 接收完毕
-    //                 isDone.value = true
-    //                 // 关闭流式连接
-    //                 eventSource.close()
-    //                 return
-    //             }
-    //             // 后解析 JSON 数据
-    //             const data = JSON.parse(chunk.data)
-    //             // 不断获取内容
-    //             currentResponse.value += data.content
-    //         });
-    //         //监听end事件判断流的结束
-    //         response.data.on('end', () => {
-    //             console.log('Stream ended');
-    //         });
-    //     })
-    //     .catch((error: any) => {
-    //         console.error('Error:', error);
-    //     });
 }
 
 // 打字机效果
@@ -196,12 +165,13 @@ const writeFontMachine = () => {
 }
 
 //保留用户/AI信息
-const saveMessage = (role: string, content: string) => {
+const saveMessage = async (role: string, content: string) => {
     let finalContent = content
     // AI回复且有联网信息，则格式化后再存入
     if (role === 'ai' && streamRespOnline.value && streamRespOnline.value.length > 0) finalContent = formatAIResponse(content)
-    messageList.value.push({ role: role, content: finalContent })
-    localStorage.setItem('messageList', JSON.stringify(messageList.value))
+    await messageList.value.push({ role: role, content: finalContent })
+    updateContent({ id: props.id, content: messageList.value })
+    updateHistName()
 }
 
 //复制内容
@@ -214,8 +184,7 @@ const retryContent = (content: string) => {
 }
 
 onMounted(() => {
-    messageList.value = JSON.parse(localStorage.getItem('messageList') || '[]')
-    getContent({ id: props.id }).then((res: any) => messageList.value = res.data)
+    getAllContent().then((res: any) => getContent(res[0].id).then((res: any) => messageList.value = res.content))
     // 初始加载时滚动到底部
     scrollToBottom()
 })
@@ -237,6 +206,7 @@ onMounted(() => {
     //不写就不让滚动
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: 40px;
     // outline: 1px solid rgb(253, 88, 88);
 
     &::-webkit-scrollbar {
@@ -384,6 +354,7 @@ onMounted(() => {
                 background: linear-gradient(to right, rgb(236, 99, 99), rgb(255, 0, 111), rgb(110, 13, 13), rgb(0, 0, 0));
                 background-clip: text;
                 width: fit-content;
+
                 &:hover {
                     text-decoration: underline;
                 }

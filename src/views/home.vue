@@ -7,14 +7,17 @@
         <div class="park-line"></div>
     </div>
     <RouterView />
-    <div class="go-top" v-if="goTopShow" @click="goTop">回到顶部</div>
+    <div class="go-top" v-if="goTopShow" @click="goTop">{{ t('huidaodingbu') }}</div>
 </template>
 <script setup lang="ts">
 import { useRouter, RouterView } from 'vue-router'
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 let activeId = ref(1)
 let goTopShow = ref(false)
-let header = [{ id: 1, name: '探索' }, { id: 2, name: '收藏' }, { id: 3, name: '问问' }, { id: 4, name: '登录' }]
+let curLanguage = ref(localStorage.getItem('qweee-language') === 'zh' ? '中' : 'En')
+let header = [{ id: 1, name: t('explore') }, { id: 2, name: t('treasure') }, { id: 3, name: t('wenwen') }, { id: 4, name: localStorage.getItem('qweee-token') ? t('loginOut') : t('login') }, { id: 5, name: curLanguage.value }]
 //动态引入 --> 分隔代码
 // const treasure = defineAsyncComponent(() => import('@/views/treasure.vue'))
 const router = useRouter()
@@ -24,13 +27,23 @@ const go = (item: any) => {
     if (item.id === 1) router.push({ path: '/baseshow' })
     if (item.id === 2) router.push({ path: '/treasure' })
     if (item.id === 3) router.push({ path: '/xunfei' })
-    if (item.id === 4) router.push({ path: '/login' })
+    if (item.id === 4) {
+        if (localStorage.getItem('qweee-token') === null) router.push({ path: '/login' })
+        else {
+            localStorage.removeItem('qweee-token')
+            window.location.reload()
+        }
+    }
+    if (item.id === 5) {
+        localStorage.setItem('qweee-language', localStorage.getItem('qweee-language') === 'zh' ? 'en' : 'zh')
+        window.location.reload()  //刷新当前页面
+    }
 }
 
 const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
 onMounted(() => {
-    if (sessionStorage.getItem('activeId') === '1') {
+    if (sessionStorage.getItem('activeId') === '1' || sessionStorage.getItem('activeId') === null) {
         activeId.value = 1
         router.push({ path: '/baseshow' })
     }
@@ -43,7 +56,7 @@ onMounted(() => {
         router.push({ path: '/xunfei' })
     }
     const handleScroll = () => {
-        if (window.scrollY > 3000) goTopShow.value = true
+        if (window.scrollY > 800) goTopShow.value = true
         else goTopShow.value = false
     }
     window.addEventListener('scroll', handleScroll)
@@ -76,24 +89,26 @@ onMounted(() => {
                 .rem(font-size, 1.3);
             }
 
-            &:last-child {
+            &:nth-child(5) {
                 font-weight: 550;
-                color: white;
-                background-color: black;
-                border-radius: 12px;
+                color: rgb(0, 0, 0);
+                background-color: rgb(255, 255, 255);
+                border: 2px solid rgb(68, 68, 68);
+                border-radius: 30%;
                 transition: background-color 0.3s ease, color 0.3s ease;
-                .rem(padding, 0.6);
+                .rem(padding, 0.2);
             }
 
             &:last-child:hover {
-                color: black;
-                background-color: white;
+                color: rgb(255, 255, 255);
+                background-color: rgb(0, 0, 0);
+                border: 2px solid black;
                 opacity: 0.7;
                 transition: all 0.3s ease;
                 cursor: pointer;
             }
 
-            &:not(:last-child) {
+            &:not(:nth-child(5)) {
                 font-weight: 800;
                 color: rgb(77, 77, 77);
                 background-color: white;
@@ -117,5 +132,17 @@ onMounted(() => {
         background-color: #000000;
         .rem(margin-top, 0.4);
     }
+}
+
+.go-top {
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    background-color: #000000;
+    color: white;
+    border-radius: 12px 12px 0 0;
+    .rem(padding, 0.5);
+    z-index: 999999;
+    cursor: pointer;
 }
 </style>

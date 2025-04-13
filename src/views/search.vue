@@ -3,7 +3,7 @@
         <!-- Header section with search functionality embedded -->
         <div class="banner">
             <div class="banner-content">
-                <h1 class="title">精彩的免版税图片和免版税库存</h1>
+                <h1 class="title">{{ t('haoliang') }}</h1>
 
                 <!-- Search tabs -->
                 <div class="search-tabs">
@@ -18,7 +18,7 @@
                     <el-icon class="search-icon">
                         <Search />
                     </el-icon>
-                    <input type="text" placeholder="搜索免费内容" v-model="searchQuery" @keyup.enter="searchByKeyword">
+                    <input type="text" :placeholder="t('search')" v-model="searchQuery" @keyup.enter="searchByKeyword">
                 </div>
 
                 <!-- Category tags -->
@@ -44,17 +44,17 @@
                     <div v-for="(item, index) in tagImages" :key="index" class="waterfall-item">
                         <img class="cover-img" :src="item.isLiked ? filledHeart : heart" @click.stop="likeImage(item)">
                         <img class="download-img" :src="downloadIcon" @click.stop="downloadImage(item)" title="下载图片">
-                        <img class="waterfall-img" :src="item.url" v-lazyimg v-SiHuuaJinRu alt="tag image"
+                        <img class="waterfall-img" :src="item.url" v-lazyimg v-SiHuaJinRu alt="tag image"
                             @click="showImageDetails(item)">
                     </div>
                 </div>
                 <div class="pagination" v-if="tagImages.length > 0">
                     <button class="pagination-btn" :disabled="currentPage <= 1" @click="prevPage">
-                        上一页
+                        {{ t('shangyiye') }}
                     </button>
-                    <span class="page-info">第 {{ currentPage }} 页</span>
+                    <span class="page-info">{{ t('dian') }} {{ currentPage }} {{ t('ye') }}</span>
                     <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="nextPage">
-                        下一页
+                        {{ t('xiayiye') }}
                     </button>
                 </div>
             </div>
@@ -62,7 +62,7 @@
 
         <!-- Alert for like notification -->
         <div class="alert" id="alertId">
-            收藏成功
+            {{ t('treasureSuccess') }}
         </div>
 
         <!-- Image Detail Drawer -->
@@ -75,21 +75,21 @@
                     <img :src="selectedDetailImage.url" class="detail-image">
                     <div class="image-info">
                         <div class="info-row">
-                            <span class="info-label">点击数：</span>
+                            <span class="info-label">{{ t('dainjishu') }}：</span>
                             <span class="info-value">{{ selectedDetailImage.clickNum || 0 }}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">收藏数：</span>
+                            <span class="info-label">{{ t('shoucangshu') }}：</span>
                             <span class="info-value">{{ selectedDetailImage.treasureNum || 0 }}</span>
                         </div>
                         <div class="action-buttons">
                             <button class="action-btn like-btn" @click="likeImage(selectedDetailImage)">
                                 <img :src="selectedDetailImage.isLiked ? filledHeart : heart" class="btn-icon">
-                                {{ selectedDetailImage.isLiked ? '已收藏' : '收藏' }}
+                                {{ selectedDetailImage.isLiked ? t('treasured') : t('treasure') }}
                             </button>
                             <button class="action-btn download-btn" @click="downloadImage(selectedDetailImage)">
                                 <img :src="downloadIcon" class="btn-icon">
-                                下载
+                                {{ t('xiazai') }}
                             </button>
                         </div>
                     </div>
@@ -106,13 +106,15 @@ import { homeShowPicture, isLiked } from '@/utils/api/picture'
 import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import downloadIcon from '@/assets/img/下载.svg'
-
+import { useI18n } from 'vue-i18n'
+import router from '@/router'
+const { t } = useI18n()
 // 搜索输入
 const searchQuery = ref('')
 
 // 搜索分类选项
 const tabs = [
-    '自然风景', '海岸', '沙漠', '花卉', '夜景', '动物', '城市', '星空'
+    t('ziranfengjing'), t('haiyang'), t('shandong'), t('huafei'), t('yejing'), t('dongwu'), t('jianzhu'), t('xingkong')
 ]
 const activeTabIndex = ref(0)
 
@@ -136,6 +138,11 @@ const selectTab = (index: number) => {
 
 // 标签选项
 const tags = [
+    t('liming'), t('senlin'), t('meishi'), t('jianzhu'), t('shuiping'), t('shangmai'), t('zhiwu'),
+    t('lvxing'), t('chuxuang'), t('keji')
+]
+// 添加标签的原始名称映射，用于数据匹配
+const originalTags = [
     '黎明', '森林', '美食', '建筑', '水景', '山脉', '植物',
     '旅行', '抽象', '科技'
 ]
@@ -252,13 +259,17 @@ const nextPage = () => {
 
 // 收藏/取消收藏图片
 const likeImage = (item: any) => {
+    if (localStorage.getItem('qweee-token') === null) {
+        router.push({ path: '/login' })
+        return
+    }
     isLiked({
         id: item.id,
         isLiked: item.isLiked ? 0 : 1
     }).then(() => {
         item.isLiked = !item.isLiked
         // 显示收藏成功提示
-        showAlert(item.isLiked ? '收藏成功' : '取消收藏')
+        showAlert(item.isLiked ? t('treasureSuccess') : t('cancelTreasure'))
     }).catch(error => {
         console.error('收藏操作失败:', error)
     })
@@ -266,6 +277,10 @@ const likeImage = (item: any) => {
 
 // 下载图片
 const downloadImage = (item: any) => {
+    if (localStorage.getItem('qweee-token') === null) {
+        router.push({ path: '/login' })
+        return
+    }
     // 创建临时链接
     const link = document.createElement('a')
     link.href = item.url
@@ -282,7 +297,7 @@ const downloadImage = (item: any) => {
     document.body.removeChild(link)
 
     // 显示下载成功提示
-    showAlert('下载成功')
+    showAlert(t('downloadSuccess'))
 }
 
 // 显示提示信息
@@ -326,11 +341,33 @@ const fetchAllImages = () => {
 const filterAndDisplayTagImages = () => {
     if (!selectedTag.value) return
 
-    // 根据标签名称查找对应的数据
+    // 尝试找到选中标签对应的原始标签名称
+    let originalTagName = selectedTag.value
+    const tagIndex = tags.findIndex(tag => tag === selectedTag.value)
+    if (tagIndex !== -1) {
+        originalTagName = originalTags[tagIndex]
+    }
+
+    // 尝试找到选中分类对应的原始分类名称
+    let originalTabName = selectedTag.value
+    const tabIndex = tabs.findIndex(tab => tab === selectedTag.value)
+    if (tabIndex !== -1) {
+        // 这里假设tabs的原始名称数组，如果需要也可以添加
+        const originalTabs = [
+            '自然风景', '海岸', '沙漠', '花卉', '夜景', '动物', '建筑', '星空'
+        ]
+        originalTabName = originalTabs[tabIndex]
+    }
+
+    // 根据标签名称查找对应的数据 - 现在同时检查翻译前后的名称
     const tagData = allImages.value.find(item => {
-        // 检查是否为标签名称或者是tabs中的标签
+        // 检查是否为标签名称或者是tabs中的标签，同时检查原始名称和翻译后的名称
         return item.name === selectedTag.value ||
-            item.name.toLowerCase().includes(selectedTag.value.toLowerCase())
+            item.name === originalTagName ||
+            item.name === originalTabName ||
+            item.name.toLowerCase().includes(selectedTag.value.toLowerCase()) ||
+            item.name.toLowerCase().includes(originalTagName.toLowerCase()) ||
+            item.name.toLowerCase().includes(originalTabName.toLowerCase())
     })
 
     if (tagData && tagData.url && Array.isArray(tagData.url)) {
@@ -406,7 +443,7 @@ const filterAndDisplayTagImages = () => {
 const showNoResultsAlert = () => {
     const alertElement = document.getElementById('alertId')
     if (alertElement) {
-        alertElement.textContent = '没有找到相关主题'
+        alertElement.textContent = t('noResults')
         alertElement.classList.add('alert-animation')
         setTimeout(() => {
             alertElement.classList.remove('alert-animation')
@@ -475,8 +512,8 @@ const closeImageDetailDrawer = () => {
     padding: 20px;
 
     .banner {
-        background: url('https://images.pexels.com/photos/31293426/pexels-photo-31293426.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load') center/cover;
-        height: 60vh;
+        background: url('https://cdn.pixabay.com/photo/2022/06/30/02/00/mountains-7292778_1280.jpg') center/cover;
+        height: 70vh;
         display: flex;
         align-items: center;
         justify-content: center;

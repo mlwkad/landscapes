@@ -1,14 +1,14 @@
 <template>
     <div class="picture-pool" ref="picturePool">
         <div class="title-container">
-            <h1>超过5.4百万张优质图片，让你轻松应对各种设计场景</h1>
+            <h1>{{ t('yijing') }}</h1>
             <div class="filter-buttons">
                 <button class="filter-btn" :class="{ active: filterType === 'editor' }"
-                    @click="changeFilter('editor')">精选</button>
+                    @click="changeFilter('editor')">{{ t('jingxuan') }}</button>
                 <button class="filter-btn" :class="{ active: filterType === 'newest' }"
-                    @click="changeFilter('newest')">最新</button>
+                    @click="changeFilter('newest')">{{ t('zuixin') }}</button>
                 <button class="filter-btn" :class="{ active: filterType === 'popular' }"
-                    @click="changeFilter('popular')">热门</button>
+                    @click="changeFilter('popular')">{{ t('remen') }}</button>
             </div>
         </div>
         <div class="waterfall-container" ref="container">
@@ -24,12 +24,12 @@
         <div class="loading" ref="loading"></div>
         <div v-if="showPagination" class="pagination">
             <button class="pagination-btn" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
-                上一页
+                {{ t('shangyiye') }}
             </button>
-            <span class="page-info">第 {{ currentPage }} 页</span>
+            <span class="page-info">{{ t('dian') }} {{ currentPage }} {{ t('ye') }}</span>
             <button class="pagination-btn" :disabled="currentPage >= Math.ceil(totalGroups / groupsPerPage)"
                 @click="goToPage(currentPage + 1)">
-                下一页
+                {{ t('xiayiye') }}
             </button>
         </div>
     </div>
@@ -47,11 +47,11 @@
                 <img :src="selectedImage.url" class="detail-image">
                 <div class="image-info">
                     <div class="info-row">
-                        <span class="info-label">点击数：</span>
+                        <span class="info-label">{{ t('dainjishu') }}：</span>
                         <span class="info-value">{{ selectedImage.clickNum }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">收藏数：</span>
+                        <span class="info-label">{{ t('shoucangshu') }}：</span>
                         <span class="info-value">{{ selectedImage.treasureNum }}</span>
                     </div>
                     <!-- <div class="info-row">
@@ -61,11 +61,11 @@
                     <div class="action-buttons">
                         <button class="action-btn like-btn" @click="isliked(selectedImage)">
                             <img :src="selectedImage.isLiked === 0 ? heart : filledHeart" class="btn-icon">
-                            {{ selectedImage.isLiked === 0 ? '收藏' : '已收藏' }}
+                            {{ selectedImage.isLiked === 0 ? t('treasure') : t('treasured') }}
                         </button>
                         <button class="action-btn download-btn" @click="downloadImage(selectedImage.url)">
                             <img :src="download" class="btn-icon">
-                            下载
+                            {{ t('xiazai') }}
                         </button>
                     </div>
                 </div>
@@ -80,6 +80,10 @@ import { homeShowPicture, isLiked } from '@/utils/api/picture'
 import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import download from '@/assets/img/下载.svg'
+import { useI18n } from 'vue-i18n'
+import router from '@/router'
+
+const { t } = useI18n()
 // 图片数据
 const imageList = ref([])
 // 分好的瀑布流数组
@@ -116,6 +120,10 @@ const selectedImage = ref(null)
 
 // 收藏/取消收藏
 const isliked = (item) => {
+    if (localStorage.getItem('qweee-token') === null) {
+        router.push({ path: '/login' })
+        return
+    }
     //更新数据库
     isLiked({
         id: item.id,
@@ -302,6 +310,10 @@ const widthScrollObserver = () => {
 
 // 下载图片
 const downloadImage = (url) => {
+    if (localStorage.getItem('qweee-token') === null) {
+        router.push({ path: '/login' })
+        return
+    }
     fetch(url)
         .then(response => response.blob())
         .then(blob => {

@@ -1,30 +1,51 @@
 {
-    "person": {
-      "name0": "全部",
-      "name1": "莱茵生命",
-      "name2": "喀兰贸易",
-      "name3": "临光骑士团",
-      "name4": "大炎",
-      "name5": "深海猎人"
-    },
-    "list": {
-      "content1": {
-        "first": "时装",
-        "second": "时代",
-        "third": "0011制造",
-        "fourth": "冰原信使",
-        "fifth": "珊瑚海岸",
-        "sixth": "生命之地"
-      },
-      "content2": {
-        "first": "强度",
-        "second": "排名"
-      },
-      "content3": {
-        "first": "素材",
-        "second": "浏览"
-      }
-    },
-    "guan-wang": "官网"
-  }
-  
+  "explore": "探索",
+  "search": "搜索内容",
+  "wenwen": "问问",
+  "treasure": "收藏",
+  "treasured": "已收藏",
+  "treasureSuccess": "收藏成功",
+  "cancelTreasure": "取消收藏",
+  "xiazai": "下载",
+  "dainjishu": "点击数",
+  "shoucangshu": "收藏数",
+  "login": "登录",
+  "loginOut": "登出",
+  "language": "语言",
+  "ziranfengjing": "自然风景",
+  "haiyang": "海岸",
+  "shandong": "沙漠",
+  "huafei": "花卉",
+  "yejing": "夜景",
+  "dongwu": "动物",
+  "liming": "黎明",
+  "senlin": "森林",
+  "meishi": "美食",
+  "jianzhu": "建筑",
+  "xingkong": "星空",
+  "shuiping": "水景",
+  "shangmai": "山脉",
+  "zhiwu": "植物",
+  "lvxing": "旅行",
+  "chuxuang": "抽象",
+  "keji": "科技",
+  "jingxuan": "精选",
+  "zuixin": "最新",
+  "remen": "热门",
+  "haoliang": "海量素材，助你用图片讲出独特故事",
+  "yijing": "踏入创意无界之境，邂逅优质图片海洋",
+  "huidaodingbu": "返回顶部",
+  "shangyiye": "上一页",
+  "xiayiye": "下一页",
+  "dian": "第",
+  "ye": "页",
+  "xinhuadonghua": "新对话",
+  "lishidihua": "历史对话",
+  "lianwngsousuo": "联网搜索",
+  "shishi": "试试 '冰岛蓝冰洞' 或 '新西兰萤火虫洞'",
+  "AIsousuo": "AI 搜索",
+  "AIliaotian": "AI 对话",
+  "AI": "参考资料:",
+  "downloadSuccess": "下载成功",
+  "noResults": "没有找到相关主题"
+}

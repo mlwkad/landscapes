@@ -10,7 +10,7 @@ import en from './en.json'
 
 const USEI18N = createI18n({
     legacy: false,  //使用组合式API
-    locale: localStorage.getItem('language') || 'zh',
+    locale: localStorage.getItem('qweee-language') || 'zh',
     messages: {
         zh: zh,
         en: en
