@@ -2,6 +2,7 @@
     <div class="picture-pool" ref="picturePool">
         <div class="title-container">
             <h1>{{ t('yijing') }}</h1>
+            <div>当前主题为:</div>
             <div class="filter-buttons">
                 <button class="filter-btn" :class="{ active: filterType === 'editor' }"
                     @click="changeFilter('editor')">{{ t('jingxuan') }}</button>
@@ -120,10 +121,10 @@ const selectedImage = ref(null)
 
 // 收藏/取消收藏
 const isliked = (item) => {
-    if (localStorage.getItem('qweee-token') === null) {
-        router.push({ path: '/login' })
-        return
-    }
+    // if (localStorage.getItem('qweee-token') === null) {
+    //     router.push({ path: '/login' })
+    //     return
+    // }
     //更新数据库
     isLiked({
         id: item.id,
@@ -310,10 +311,10 @@ const widthScrollObserver = () => {
 
 // 下载图片
 const downloadImage = (url) => {
-    if (localStorage.getItem('qweee-token') === null) {
-        router.push({ path: '/login' })
-        return
-    }
+    // if (localStorage.getItem('qweee-token') === null) {
+    //     router.push({ path: '/login' })
+    //     return
+    // }
     fetch(url)
         .then(response => response.blob())
         .then(blob => {
@@ -469,9 +470,9 @@ onUnmounted(() => {
                     z-index: 9999;
                     transition: opacity 0.5s ease;
                     cursor: pointer;
-                    background-color: rgb(255, 243, 243);
+                    background-color: rgba(255, 243, 243, 0.155);
                     backdrop-filter: blur(20px);
-                    border: 1px solid #ffffff;
+                    border: 2px solid #ffffff;
                     padding: 3px;
                     border-radius: 12px;
                 }
@@ -485,9 +486,9 @@ onUnmounted(() => {
                     z-index: 9999;
                     transition: opacity 0.5s ease;
                     cursor: pointer;
-                    background-color: rgb(255, 243, 243);
+                    background-color: rgba(255, 243, 243, 0.155);
                     backdrop-filter: blur(20px);
-                    border: 1px solid #ffffff;
+                    border: 2px solid #ffffff;
                     padding: 3px;
                     border-radius: 12px;
                 }

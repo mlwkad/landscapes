@@ -81,10 +81,10 @@ onMounted(() => {
 })
 
 const isliked = (item: any) => {
-    if (localStorage.getItem('qweee-token') === null) {
-        router.push({ path: '/login' })
-        return
-    }
+    // if (localStorage.getItem('qweee-token') === null) {
+    //     router.push({ path: '/login' })
+    //     return
+    // }
     isLiked({
         id: item.id,
         isLiked: item.isLiked === 0 ? 1 : 0
@@ -100,10 +100,10 @@ const isliked = (item: any) => {
 }
 
 const downloadImage = async (url: string) => {
-    if (localStorage.getItem('qweee-token') === null) {
-        router.push({ path: '/login' })
-        return
-    }
+    // if (localStorage.getItem('qweee-token') === null) {
+    //     router.push({ path: '/login' })
+    //     return
+    // }
     try {
         const response = await fetch(url)
         const blob = await response.blob()
@@ -161,21 +161,21 @@ const showAlert = () => {
             z-index: 9999;
             transition: opacity 0.5s ease;
             cursor: pointer;
-            background-color: rgb(255, 243, 243);
+            background-color: rgba(255, 243, 243, 0.155);
             backdrop-filter: blur(20px);
-            border: 1px solid #ffffff;
+            border: 2px solid #ffffff;
             padding: 3px;
             border-radius: 12px;
         }
 
         .heart-icon {
             bottom: 12px;
-            right: 12px;
+            right: 20px;
         }
 
         .download-icon {
             bottom: 12px;
-            right: 57px;
+            right: 65px;
         }
 
         &:hover .cover-img {

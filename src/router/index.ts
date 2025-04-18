@@ -16,7 +16,8 @@ const router = createRouter({
         },
         {
           beforeEnter: (to, from, next) => {
-            if (localStorage.getItem('qweee-token') === null) {
+            // if (localStorage.getItem('qweee-token') === null) {
+            if (false) {
               next({ path: '/login' })
             } else {
               next()
@@ -27,7 +28,8 @@ const router = createRouter({
         },
         {
           beforeEnter: (to, from, next) => {
-            if (localStorage.getItem('qweee-token') === null) {
+            // if (localStorage.getItem('qweee-token') === null) {
+            if (false) {
               next({ path: '/login' })
             } else {
               next()

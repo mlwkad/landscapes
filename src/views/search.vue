@@ -259,10 +259,10 @@ const nextPage = () => {
 
 // 收藏/取消收藏图片
 const likeImage = (item: any) => {
-    if (localStorage.getItem('qweee-token') === null) {
-        router.push({ path: '/login' })
-        return
-    }
+    // if (localStorage.getItem('qweee-token') === null) {
+    //     router.push({ path: '/login' })
+    //     return
+    // }
     isLiked({
         id: item.id,
         isLiked: item.isLiked ? 0 : 1
@@ -277,10 +277,10 @@ const likeImage = (item: any) => {
 
 // 下载图片
 const downloadImage = (item: any) => {
-    if (localStorage.getItem('qweee-token') === null) {
-        router.push({ path: '/login' })
-        return
-    }
+    // if (localStorage.getItem('qweee-token') === null) {
+    //     router.push({ path: '/login' })
+    //     return
+    // }
     // 创建临时链接
     const link = document.createElement('a')
     link.href = item.url

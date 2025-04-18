@@ -2,7 +2,9 @@
     <div class="header-zone">
         <header class="header">
             <div v-for="item in header" :key="item.id" class="header-font" @click="go(item)"
-                :style="{ 'backgroundColor': activeId === item.id ? 'pink' : '' }">{{ item.name }}</div>
+                :style="{ 'backgroundColor': (activeId === item.id) && item.id !== 4 ? 'pink' : '' }">
+                {{ item.id !== 4 ? item.name : '' }}
+            </div>
         </header>
         <div class="park-line"></div>
     </div>
@@ -28,15 +30,16 @@ const go = (item: any) => {
     if (item.id === 2) router.push({ path: '/treasure' })
     if (item.id === 3) router.push({ path: '/xunfei' })
     if (item.id === 4) {
-        if (localStorage.getItem('qweee-token') === null) router.push({ path: '/login' })
-        else {
-            localStorage.removeItem('qweee-token')
-            window.location.reload()  //刷新当前页面
-        }
+        activeId.value = Number(sessionStorage.getItem('activeId'))
+        //     if (localStorage.getItem('qweee-token') === null) router.push({ path: '/login' })
+        //     else {
+        //         localStorage.removeItem('qweee-token')
+        //         window.location.reload()  //刷新当前页面
+        //     }
     }
     if (item.id === 5) {
         localStorage.setItem('qweee-language', localStorage.getItem('qweee-language') === 'zh' ? 'en' : 'zh')
-            window.location.reload()  //刷新当前页面
+        window.location.reload()  //刷新当前页面
     }
 }
 
@@ -89,6 +92,8 @@ onMounted(() => {
                 .rem(font-size, 1.3);
             }
 
+
+
             &:nth-child(5) {
                 font-weight: 550;
                 color: rgb(0, 0, 0);
@@ -121,6 +126,14 @@ onMounted(() => {
                 background-color: black;
                 color: white;
                 transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            &:nth-child(4) {
+                background-color: none;
+            }
+
+            &:nth-child(4):hover {
+                background-color: white;
             }
         }
     }
