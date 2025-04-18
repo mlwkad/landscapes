@@ -2,13 +2,14 @@
     <div class="picture-pool" ref="picturePool">
         <div class="title-container">
             <h1>{{ t('yijing') }}</h1>
-            <div>当前主题为:</div>
+            <div v-if="pictureStore.currentTheme">当前主题为: {{ pictureStore.currentTheme }}</div>
+            <div v-else>当前主题为:</div>
             <div class="filter-buttons">
-                <button class="filter-btn" :class="{ active: filterType === 'editor' }"
+                <button class="filter-btn" :class="{ active: pictureStore.filterType === 'editor' }"
                     @click="changeFilter('editor')">{{ t('jingxuan') }}</button>
-                <button class="filter-btn" :class="{ active: filterType === 'newest' }"
+                <button class="filter-btn" :class="{ active: pictureStore.filterType === 'newest' }"
                     @click="changeFilter('newest')">{{ t('zuixin') }}</button>
-                <button class="filter-btn" :class="{ active: filterType === 'popular' }"
+                <button class="filter-btn" :class="{ active: pictureStore.filterType === 'popular' }"
                     @click="changeFilter('popular')">{{ t('remen') }}</button>
             </div>
         </div>
@@ -76,15 +77,19 @@
 </template>
 
 <script setup lang="js">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { homeShowPicture, isLiked } from '@/utils/api/picture'
 import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import download from '@/assets/img/下载.svg'
 import { useI18n } from 'vue-i18n'
 import router from '@/router'
+import { usePictureStore } from '@/stores/picture' // 导入Pinia store
 
 const { t } = useI18n()
+// 引入图片Store
+const pictureStore = usePictureStore()
+
 // 图片数据
 const imageList = ref([])
 // 分好的瀑布流数组
@@ -95,19 +100,14 @@ const container = ref(null)
 const loading = ref(null)
 // 列数
 const columnCount = ref(4)
-// 筛选类型
-const filterType = ref('editor') // 默认为编辑精选
 // 分页相关
 const currentGroup = ref(1)
 const totalGroups = ref(0)
 const imagesPerGroup = 20
 const showPagination = ref(false)
-const allImages = ref([]) // 存储所有图片数据
 const groupsPerPage = 5
 const currentPage = ref(1)
 const loadedGroupsOnCurrentPage = ref(1)
-// 原始未排序数据
-const originalImages = ref([])
 // 视口检测器
 let observer = null
 // 调整大小监听器
@@ -145,117 +145,50 @@ const isliked = (item) => {
 
 // 获取图片
 const getImages = async () => {
-    if (originalImages.value.length === 0) {
-        await homeShowPicture().then(res => {
-            const tempImages = []
-            res.data.forEach(item => {
-                item.url.forEach(item0 => {
-                    const url = item0.url
-                    const height = Math.floor(Math.random() * 200) + 200
-                    tempImages.push({
-                        height,
-                        url,
-                        id: item0.id,
-                        isLiked: item0.isLiked || 0,
-                        treasureNum: item0.treasureNum || 0,
-                        mostNew: item0.mostNew || 0,
-                        clickNum: item0.clickNum || 0
-                    })
-                })
-            })
-            originalImages.value = [...tempImages]
-            sortImages()
-        })
+    // 从Store获取图片数据
+    if (pictureStore.originalImages.length === 0) {
+        await pictureStore.fetchAllImages()
+    }
+
+    // 使用Store的过滤后图片
+    const filteredImages = pictureStore.filteredImages
+
+    if (filteredImages.length > 0) {
+        // 计算总组数
+        totalGroups.value = Math.ceil(filteredImages.length / imagesPerGroup)
+
+        // 计算当前组应该显示的图片
+        const startIndex = (currentGroup.value - 1) * imagesPerGroup
+        const endIndex = startIndex + imagesPerGroup
+        const currentImages = filteredImages.slice(startIndex, endIndex)
+
+        // 更新图片列表
+        imageList.value = [...imageList.value, ...currentImages]
+        reputImages()
     } else {
-        // 如果已经有原始数据，只需要重新排序
-        sortImages()
+        // 如果没有找到匹配图片
+        imageList.value = []
+        columns.value = []
     }
-    // 计算当前组应该显示的图片
-    const startIndex = (currentGroup.value - 1) * imagesPerGroup
-    const endIndex = startIndex + imagesPerGroup
-    const currentImages = allImages.value.slice(startIndex, endIndex)
-    // 更新图片列表
-    imageList.value = [...imageList.value, ...currentImages]
-    reputImages()
-}
-
-// 根据当前筛选类型对图片进行排序
-const sortImages = () => {
-    let sortedImages = [...originalImages.value]
-    switch (filterType.value) {
-        case 'editor':
-            // 按照treasureNum降序排序（编辑精选）
-            sortedImages.sort((a, b) => (b.treasureNum || 0) - (a.treasureNum || 0))
-            break
-        case 'newest':
-            // 按照Mostnew升序排序（最新的）
-            sortedImages.sort((a, b) => (a.mostNew || 0) - (b.mostNew || 0))
-            break
-        case 'popular':
-            // 按照clickNum降序排序（热门）
-            sortedImages.sort((a, b) => (b.clickNum || 0) - (a.clickNum || 0))
-            break
-        default:
-            // 默认按照treasureNum降序排序
-            sortedImages.sort((a, b) => (b.treasureNum || 0) - (a.treasureNum || 0))
-    }
-    allImages.value = sortedImages
-    totalGroups.value = Math.ceil(sortedImages.length / imagesPerGroup)
-}
-
-// 加载更多图片
-const loadMore = () => {
-    // 当前页可加载的最大组数
-    const pageEndGroup = currentPage.value * groupsPerPage
-    // 如果当前组未达到当前页最大组数，且未达到总组数上限，则加载下一组
-    if (currentGroup.value < pageEndGroup && currentGroup.value < totalGroups.value) {
-        currentGroup.value++
-        loadedGroupsOnCurrentPage.value++
-        getImages()
-        // 检查是否需要显示分页 - 如果已达到当前页面最大组数或已到达末尾
-        if (loadedGroupsOnCurrentPage.value >= groupsPerPage || currentGroup.value >= totalGroups.value) {
-            showPagination.value = true
-        }
-    } else {
-        // 已加载完本页所有数据或已达到总组数上限，显示分页
-        showPagination.value = true
-    }
-}
-
-// 切换到指定页面
-const goToPage = (page) => {
-    // 回到顶部
-    picturePool.value.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-    })
-    // 保存当前页面的图片位置
-    currentPage.value = page
-    // 计算新页面的起始组
-    const startGroup = (page - 1) * groupsPerPage + 1
-    // 重置图片列表
-    imageList.value = []
-    columns.value = []
-    // 设置当前组和已加载组计数
-    currentGroup.value = startGroup
-    loadedGroupsOnCurrentPage.value = 1
-    // 隐藏分页，显示一组图片，等待滚动加载更多
-    showPagination.value = false
-    // 加载第一组图片
-    getImages()
 }
 
 // 修改筛选类型
 const changeFilter = (type) => {
     // 如果当前已经是选中状态，不做任何操作
-    if (filterType.value === type) return
-    filterType.value = type
+    if (pictureStore.filterType === type) return
+
+    // 更新Store中的筛选类型
+    pictureStore.setFilterType(type)
+
+    // 重置页面状态
     currentGroup.value = 1
     currentPage.value = 1
     loadedGroupsOnCurrentPage.value = 1
     showPagination.value = false
     imageList.value = []
     columns.value = []
+
+    // 获取新筛选的图片
     getImages()
 }
 
@@ -275,6 +208,25 @@ const reputImages = () => {
         columnHeights[minHeightIndex] += item.height + 16 // 16px为间距
     })
     columns.value = newColumns
+}
+
+// 加载更多图片
+const loadMore = () => {
+    // 当前页可加载的最大组数
+    const pageEndGroup = currentPage.value * groupsPerPage
+    // 如果当前组未达到当前页最大组数，且未达到总组数上限，则加载下一组
+    if (currentGroup.value < pageEndGroup && currentGroup.value < totalGroups.value) {
+        currentGroup.value++
+        loadedGroupsOnCurrentPage.value++
+        getImages()
+        // 检查是否需要显示分页 - 如果已达到当前页面最大组数或已到达末尾
+        if (loadedGroupsOnCurrentPage.value >= groupsPerPage || currentGroup.value >= totalGroups.value) {
+            showPagination.value = true
+        }
+    } else {
+        // 已加载完本页所有数据或已达到总组数上限，显示分页
+        showPagination.value = true
+    }
 }
 
 // 设置无限滚动
@@ -307,6 +259,29 @@ const widthScrollObserver = () => {
         reputImages()
     })
     resizeObserver.observe(container.value)
+}
+
+// 切换到指定页面
+const goToPage = (page) => {
+    // 回到顶部
+    picturePool.value.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    })
+    // 保存当前页面的图片位置
+    currentPage.value = page
+    // 计算新页面的起始组
+    const startGroup = (page - 1) * groupsPerPage + 1
+    // 重置图片列表
+    imageList.value = []
+    columns.value = []
+    // 设置当前组和已加载组计数
+    currentGroup.value = startGroup
+    loadedGroupsOnCurrentPage.value = 1
+    // 隐藏分页，显示一组图片，等待滚动加载更多
+    showPagination.value = false
+    // 加载第一组图片
+    getImages()
 }
 
 // 下载图片
@@ -344,18 +319,19 @@ const closeDrawer = () => {
     }, 300) // 等待动画结束后再清空数据
 }
 
-// 格式化时间
-const formatTimeAgo = (timestamp) => {
-    const now = Date.now()
-    const diff = now - timestamp
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+// 监听Store中主题变化，当主题变化时重新加载图片
+watch(() => pictureStore.currentTheme, (newTheme) => {
+    // 重置页面状态
+    currentGroup.value = 1
+    currentPage.value = 1
+    loadedGroupsOnCurrentPage.value = 1
+    showPagination.value = false
+    imageList.value = []
+    columns.value = []
 
-    if (days === 0) return '今天'
-    if (days === 1) return '昨天'
-    if (days < 30) return `${days}天前`
-    if (days < 365) return `${Math.floor(days / 30)}个月前`
-    return `${Math.floor(days / 365)}年前`
-}
+    // 获取新主题的图片
+    getImages()
+})
 
 onMounted(() => {
     getImages()  // 加载初始数据

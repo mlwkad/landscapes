@@ -18,7 +18,8 @@
                     <el-icon class="search-icon">
                         <Search />
                     </el-icon>
-                    <input type="text" :placeholder="t('search')" v-model="searchQuery" @keyup.enter="searchByKeyword">
+                    <input type="text" :placeholder="t('search')" v-model="searchQuery" @keyup.enter="searchByKeyword"
+                        @change="searchAll">
                 </div>
 
                 <!-- Category tags -->
@@ -31,71 +32,11 @@
             </div>
         </div>
 
-        <!-- Tag Drawer component that appears from bottom -->
-        <div class="tag-drawer" v-if="showDrawer" :class="{ 'drawer-open': showDrawer }">
-            <div class="drawer-header">
-                <h2 class="drawer-title">{{ selectedTag }}</h2>
-                <el-icon class="close-icon" @click="closeDrawer">
-                    <Close />
-                </el-icon>
-            </div>
-            <div class="drawer-content">
-                <div class="waterfall-container">
-                    <div v-for="(item, index) in tagImages" :key="index" class="waterfall-item">
-                        <img class="cover-img" :src="item.isLiked ? filledHeart : heart" @click.stop="likeImage(item)">
-                        <img class="download-img" :src="downloadIcon" @click.stop="downloadImage(item)" title="下载图片">
-                        <img class="waterfall-img" :src="item.url" v-lazyimg v-SiHuaJinRu alt="tag image"
-                            @click="showImageDetails(item)">
-                    </div>
-                </div>
-                <div class="pagination" v-if="tagImages.length > 0">
-                    <button class="pagination-btn" :disabled="currentPage <= 1" @click="prevPage">
-                        {{ t('shangyiye') }}
-                    </button>
-                    <span class="page-info">{{ t('dian') }} {{ currentPage }} {{ t('ye') }}</span>
-                    <button class="pagination-btn" :disabled="currentPage >= totalPages" @click="nextPage">
-                        {{ t('xiayiye') }}
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- Alert for like notification -->
         <div class="alert" id="alertId">
             {{ t('treasureSuccess') }}
         </div>
 
-        <!-- Image Detail Drawer -->
-        <div class="image-detail-drawer" :class="{ 'drawer-open': isImageDetailDrawerOpen }">
-            <div class="drawer-content">
-                <div class="drawer-header">
-                    <button class="close-btn" @click="closeImageDetailDrawer">×</button>
-                </div>
-                <div class="drawer-body" v-if="selectedDetailImage">
-                    <img :src="selectedDetailImage.url" class="detail-image">
-                    <div class="image-info">
-                        <div class="info-row">
-                            <span class="info-label">{{ t('dainjishu') }}：</span>
-                            <span class="info-value">{{ selectedDetailImage.clickNum || 0 }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">{{ t('shoucangshu') }}：</span>
-                            <span class="info-value">{{ selectedDetailImage.treasureNum || 0 }}</span>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-btn like-btn" @click="likeImage(selectedDetailImage)">
-                                <img :src="selectedDetailImage.isLiked ? filledHeart : heart" class="btn-icon">
-                                {{ selectedDetailImage.isLiked ? t('treasured') : t('treasure') }}
-                            </button>
-                            <button class="action-btn download-btn" @click="downloadImage(selectedDetailImage)">
-                                <img :src="downloadIcon" class="btn-icon">
-                                {{ t('xiazai') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -108,32 +49,70 @@ import filledHeart from '@/assets/img/filled-heart.svg'
 import downloadIcon from '@/assets/img/下载.svg'
 import { useI18n } from 'vue-i18n'
 import router from '@/router'
+import { usePictureStore } from '@/stores/picture' // 导入Pinia store
+import { watch } from 'vue'
+
 const { t } = useI18n()
+// 引入图片Store
+const pictureStore = usePictureStore()
+
 // 搜索输入
 const searchQuery = ref('')
 
 // 搜索分类选项
 const tabs = [
-    t('ziranfengjing'), t('haiyang'), t('shandong'), t('huafei'), t('yejing'), t('dongwu'), t('jianzhu'), t('xingkong')
+    '全部', t('ziranfengjing'), t('haiyang'), t('shandong'), t('huafei'), t('yejing'), t('dongwu'), t('jianzhu'), t('xingkong')
+]
+// 原始搜索分类选项（用于数据匹配）
+const originalTabs = [
+    '全部', '自然风景', '海岸', '沙漠', '花卉', '夜景', '动物', '建筑', '星空'
 ]
 const activeTabIndex = ref(0)
-
-const selectTab = (index: number) => {
-    activeTabIndex.value = index
-    // 使用选中的tab内容作为selectedTag并显示抽屉
-    selectedTag.value = tabs[index]
-    currentPage.value = 1 // 重置页码
-
-    // 如果还没有加载过数据，先加载数据
-    if (allImages.value.length === 0) {
-        fetchAllImages().then(() => {
-            filterAndDisplayTagImages()
-        })
-    } else {
-        filterAndDisplayTagImages()
+watch(activeTabIndex, (newVal) => {
+    if (newVal === 0) {
+        searchQuery.value = ''
+        pictureStore.resetFilters() // 重置Store中的筛选条件
     }
+})
+const selectTab = (index: number) => {
+    if (index === 0) {
+        activeTabIndex.value = 0
+        activeTagIndex.value = -1
+        pictureStore.resetFilters() // 重置Store中的筛选条件
+    } else if (activeTabIndex.value === index) {
+        activeTabIndex.value = 0
+        activeTagIndex.value = -1
+        pictureStore.resetFilters() // 重置Store中的筛选条件
+    } else {
+        activeTabIndex.value = index
+        activeTagIndex.value = -1
+        // 使用选中的tab内容作为selectedTag并显示抽屉
+        selectedTag.value = tabs[index]
+        currentPage.value = 1 // 重置页码
 
-    showDrawer.value = true
+        // 更新Store中的主题
+        pictureStore.setTheme(originalTabs[index])
+
+        // 如果还没有加载过数据，先加载数据
+        if (pictureStore.originalImages.length === 0) {
+            pictureStore.fetchAllImages().then(() => {
+                // 加载标签相关图片
+                filterAndDisplayTagImages()
+            })
+        } else {
+            filterAndDisplayTagImages()
+        }
+
+        showDrawer.value = true
+    }
+}
+
+// 搜索所有
+const searchAll = () => {
+    // if (searchQuery.value === '') {
+    //     activeTabIndex.value = 0
+    //     pictureStore.resetFilters() // 重置Store中的筛选条件
+    // }
 }
 
 // 标签选项
@@ -154,7 +133,6 @@ const currentPage = ref(1)
 const itemsPerPage = 10 // 每页显示10张图片
 const totalImageCount = ref(0)
 const loading = ref(false)
-const allImages = ref<any[]>([]) // 存储所有图片数据
 
 // 计算总页数
 const totalPages = computed(() => {
@@ -165,16 +143,22 @@ const totalPages = computed(() => {
 const selectTag = (index: number) => {
     // 选择新标签或取消已选标签
     if (activeTagIndex.value === index) {
+        activeTabIndex.value = 0
         activeTagIndex.value = -1
+        pictureStore.resetFilters() // 重置Store中的筛选条件
         closeDrawer()
     } else {
+        activeTabIndex.value = -1
         activeTagIndex.value = index
         selectedTag.value = tags[index]
         currentPage.value = 1 // 重置页码
 
+        // 更新Store中的主题
+        pictureStore.setTheme(originalTags[index])
+
         // 如果还没有加载过数据，先加载数据
-        if (allImages.value.length === 0) {
-            fetchAllImages().then(() => {
+        if (pictureStore.originalImages.length === 0) {
+            pictureStore.fetchAllImages().then(() => {
                 filterAndDisplayTagImages()
             })
         } else {
@@ -206,21 +190,26 @@ const searchByKeyword = () => {
     if (tagIndex >= 0) {
         activeTagIndex.value = tagIndex
         selectedTag.value = tags[tagIndex]
+        pictureStore.setTheme(originalTags[tagIndex])
+        activeTabIndex.value = -1
     }
     // 如果匹配分类，选择该分类
     else if (tabIndex >= 0) {
         activeTabIndex.value = tabIndex
         selectedTag.value = tabs[tabIndex]
+        pictureStore.setTheme(originalTabs[tabIndex])
+        activeTagIndex.value = -1
     }
     // 否则直接使用搜索词
     else {
         activeTagIndex.value = -1 // 清除已选标签
         selectedTag.value = searchQuery.value
+        pictureStore.setTheme(searchQuery.value)
     }
 
     // 如果还没有加载过数据，先加载数据
-    if (allImages.value.length === 0) {
-        fetchAllImages().then(() => {
+    if (pictureStore.originalImages.length === 0) {
+        pictureStore.fetchAllImages().then(() => {
             filterAndDisplayTagImages()
         })
     } else {
@@ -240,6 +229,53 @@ const closeDrawer = () => {
             activeTagIndex.value = -1
         }
     }, 300)
+}
+
+// 根据选中的标签过滤并显示图片
+const filterAndDisplayTagImages = () => {
+    if (!selectedTag.value) return
+
+    // 使用Store中的过滤后图片
+    const filteredImages = pictureStore.filteredImages
+
+    if (filteredImages.length > 0) {
+        // 存储总图片数量
+        totalImageCount.value = filteredImages.length
+
+        // 计算当前页应该显示的图片
+        const startIdx = (currentPage.value - 1) * itemsPerPage
+        const endIdx = Math.min(startIdx + itemsPerPage, filteredImages.length)
+
+        // 获取当前页的图片
+        const pageImages = filteredImages.slice(startIdx, endIdx)
+
+        // 设置图片统一高度
+        tagImages.value = pageImages.map(img => ({
+            ...img,
+            isLiked: img.isLiked || false,
+            height: 250 // 统一高度
+        }))
+    } else {
+        // 如果仍然没有找到匹配的图片
+        tagImages.value = []
+        totalImageCount.value = 0
+
+        // 显示没有找到相关主题的提示
+        showNoResultsAlert()
+    }
+}
+
+// 显示没有找到相关主题的提示
+const showNoResultsAlert = () => {
+    const alertElement = document.getElementById('alertId')
+    if (alertElement) {
+        alertElement.textContent = t('noResults')
+        alertElement.classList.add('alert-animation')
+        setTimeout(() => {
+            alertElement.classList.remove('alert-animation')
+            closeDrawer() // 关闭抽屉，因为没有内容
+        }, 1500)
+    }
 }
 
 // 翻页功能
@@ -312,146 +348,6 @@ const showAlert = (message: string) => {
     }
 }
 
-// 获取所有图片数据
-const fetchAllImages = () => {
-    if (loading.value) return Promise.reject('Loading in progress')
-
-    loading.value = true
-    return homeShowPicture()
-        .then((response: any) => {
-            const data = response.data || response
-
-            if (data && Array.isArray(data)) {
-                allImages.value = data
-            } else {
-                console.error('Invalid data format:', data)
-                allImages.value = []
-            }
-        })
-        .catch(error => {
-            console.error('Failed to fetch images:', error)
-            allImages.value = []
-        })
-        .finally(() => {
-            loading.value = false
-        })
-}
-
-// 根据选中的标签过滤并显示图片
-const filterAndDisplayTagImages = () => {
-    if (!selectedTag.value) return
-
-    // 尝试找到选中标签对应的原始标签名称
-    let originalTagName = selectedTag.value
-    const tagIndex = tags.findIndex(tag => tag === selectedTag.value)
-    if (tagIndex !== -1) {
-        originalTagName = originalTags[tagIndex]
-    }
-
-    // 尝试找到选中分类对应的原始分类名称
-    let originalTabName = selectedTag.value
-    const tabIndex = tabs.findIndex(tab => tab === selectedTag.value)
-    if (tabIndex !== -1) {
-        // 这里假设tabs的原始名称数组，如果需要也可以添加
-        const originalTabs = [
-            '自然风景', '海岸', '沙漠', '花卉', '夜景', '动物', '建筑', '星空'
-        ]
-        originalTabName = originalTabs[tabIndex]
-    }
-
-    // 根据标签名称查找对应的数据 - 现在同时检查翻译前后的名称
-    const tagData = allImages.value.find(item => {
-        // 检查是否为标签名称或者是tabs中的标签，同时检查原始名称和翻译后的名称
-        return item.name === selectedTag.value ||
-            item.name === originalTagName ||
-            item.name === originalTabName ||
-            item.name.toLowerCase().includes(selectedTag.value.toLowerCase()) ||
-            item.name.toLowerCase().includes(originalTagName.toLowerCase()) ||
-            item.name.toLowerCase().includes(originalTabName.toLowerCase())
-    })
-
-    if (tagData && tagData.url && Array.isArray(tagData.url)) {
-        // 存储总图片数量
-        totalImageCount.value = tagData.url.length
-
-        // 计算当前页应该显示的图片
-        const startIdx = (currentPage.value - 1) * itemsPerPage
-        const endIdx = Math.min(startIdx + itemsPerPage, tagData.url.length)
-
-        // 获取当前页的图片
-        const pageImages = tagData.url.slice(startIdx, endIdx)
-
-        // 设置图片统一高度
-        tagImages.value = pageImages.map(img => ({
-            ...img,
-            isLiked: img.isLiked || false,
-            height: 250 // 统一高度
-        }))
-    } else {
-        // 如果没有找到对应标签，尝试搜索所有图片数据中的关键词
-        console.log('No direct tag match, searching for related images:', selectedTag.value)
-
-        // 从所有图像中收集匹配关键词的图片
-        let matchedImages: any[] = []
-
-        allImages.value.forEach(category => {
-            if (category.url && Array.isArray(category.url)) {
-                // 查找该分类下匹配关键词的图片
-                const matches = category.url.filter((img: any) => {
-                    // 这里可以根据实际数据结构扩展搜索范围
-                    // 例如搜索图片描述、标签等字段
-                    return img.description?.toLowerCase().includes(selectedTag.value.toLowerCase()) ||
-                        img.tags?.some((tag: string) => tag.toLowerCase().includes(selectedTag.value.toLowerCase())) ||
-                        category.name.toLowerCase().includes(selectedTag.value.toLowerCase())
-                })
-
-                if (matches.length > 0) {
-                    matchedImages = [...matchedImages, ...matches]
-                }
-            }
-        })
-
-        // 如果找到匹配的图片
-        if (matchedImages.length > 0) {
-            totalImageCount.value = matchedImages.length
-
-            // 计算当前页应该显示的图片
-            const startIdx = (currentPage.value - 1) * itemsPerPage
-            const endIdx = Math.min(startIdx + itemsPerPage, matchedImages.length)
-
-            // 获取当前页的图片
-            const pageImages = matchedImages.slice(startIdx, endIdx)
-
-            // 设置图片统一高度
-            tagImages.value = pageImages.map(img => ({
-                ...img,
-                isLiked: img.isLiked || false,
-                height: 250 // 统一高度
-            }))
-        } else {
-            // 如果仍然没有找到匹配的图片
-            tagImages.value = []
-            totalImageCount.value = 0
-
-            // 显示没有找到相关主题的提示
-            showNoResultsAlert()
-        }
-    }
-}
-
-// 显示没有找到相关主题的提示
-const showNoResultsAlert = () => {
-    const alertElement = document.getElementById('alertId')
-    if (alertElement) {
-        alertElement.textContent = t('noResults')
-        alertElement.classList.add('alert-animation')
-        setTimeout(() => {
-            alertElement.classList.remove('alert-animation')
-            closeDrawer() // 关闭抽屉，因为没有内容
-        }, 1500)
-    }
-}
-
 // 图片数据
 const imageList = ref<any[]>([])
 const loadMoreRef = ref(null)
@@ -475,7 +371,7 @@ const setupInfiniteScroll = () => {
 
 onMounted(() => {
     // 初始加载所有图片数据
-    fetchAllImages()
+    pictureStore.fetchAllImages()
     // 设置无限滚动
     setupInfiniteScroll()
 })
