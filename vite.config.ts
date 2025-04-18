@@ -45,15 +45,22 @@ export default defineConfig({
     }
   },
   build: {
-    assetsInlineLimit: 20000,  //小于20kb的图片转成base64编码
+    assetsInlineLimit: 1024,  //大于1KB的静态资源(图片,字体,音视频,json,文本)提取为单独文件，小于1KB的内联到JS中
     rollupOptions: {  // rollup配置
       output: {
         entryFileNames: 'Entry-[hash:6].js',
-        chunkFileNames: '[name]-[hash:6].js',  
+        chunkFileNames: '[name]-[hash:6].js',
         // 路由懒加载,异步组件...这些组件都会打包成chunk,name是组件名
         manualChunks: {
           //将生产依赖打包到Vendors.js,下次更新时,如果依赖没有变化,则不会重新打包这个文件
           'Vendors': ['vue', 'vue-router', 'pinia', 'element-plus', 'axios', '@vueuse/core', 'vue-i18n']
+        },
+        // 自定义静态资源输出目录和文件名
+        assetFileNames: (assetInfo) => {
+          if (/\.(png|jpe?g|gif|svg|webp|ico)$/.test(assetInfo.name)) {
+            return `assets/img/[name]-[hash:6].[ext]`;
+          }
+          return `assets/[ext]/[name]-[hash:6].[ext]`;
         }
       },
     }
