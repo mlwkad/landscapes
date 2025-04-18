@@ -236,7 +236,7 @@ const filterAndDisplayTagImages = () => {
     if (!selectedTag.value) return
 
     // 使用Store中的过滤后图片
-    const filteredImages = pictureStore.filteredImages
+    const filteredImages:any = pictureStore.filteredImages
 
     if (filteredImages.length > 0) {
         // 存储总图片数量

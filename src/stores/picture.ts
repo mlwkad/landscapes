@@ -8,7 +8,6 @@ export const usePictureStore = defineStore('picture', () => {
     const filterType = ref('editor') // 默认筛选类型：editor, newest, popular
     const searchQuery = ref('') // 搜索关键词
     const currentTheme = ref('') // 当前主题，如 "森林", "海洋" 等
-    const isLoading = ref(false) // 加载状态
 
     // 计算属性：根据当前筛选条件过滤后的图片
     const filteredImages = computed(() => {
@@ -42,9 +41,7 @@ export const usePictureStore = defineStore('picture', () => {
 
     // 异步方法：获取所有图片
     const fetchAllImages = async () => {
-        if (isLoading.value || originalImages.value.length > 0) return
-
-        isLoading.value = true
+        if (originalImages.value.length > 0) return
         try {
             const res = await homeShowPicture()
             const tempImages = []
@@ -69,7 +66,6 @@ export const usePictureStore = defineStore('picture', () => {
         } catch (error) {
             console.error('获取图片失败:', error)
         } finally {
-            isLoading.value = false
         }
     }
 
@@ -94,7 +90,6 @@ export const usePictureStore = defineStore('picture', () => {
         filteredImages,
         filterType,
         currentTheme,
-        isLoading,
         fetchAllImages,
         setFilterType,
         setTheme,

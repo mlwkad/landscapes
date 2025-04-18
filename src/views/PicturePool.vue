@@ -146,10 +146,7 @@ const isliked = (item) => {
 // 获取图片
 const getImages = async () => {
     // 从Store获取图片数据
-    if (pictureStore.originalImages.length === 0) {
-        await pictureStore.fetchAllImages()
-    }
-
+    await pictureStore.fetchAllImages()
     // 使用Store的过滤后图片
     const filteredImages = pictureStore.filteredImages
 
