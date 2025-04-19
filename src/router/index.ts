@@ -15,6 +15,10 @@ const router = createRouter({
           component: () => import('@/views/BaseShow.vue'),
         },
         {
+          path: 'image/:id',
+          component: () => import('@/views/ImageDetail.vue'),
+        },
+        {
           beforeEnter: (to, from, next) => {
             // if (localStorage.getItem('qweee-token') === null) {
             if (false) {

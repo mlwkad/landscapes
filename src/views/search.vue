@@ -236,7 +236,7 @@ const filterAndDisplayTagImages = () => {
     if (!selectedTag.value) return
 
     // 使用Store中的过滤后图片
-    const filteredImages:any = pictureStore.filteredImages
+    const filteredImages: any = pictureStore.filteredImages
 
     if (filteredImages.length > 0) {
         // 存储总图片数量
@@ -389,8 +389,8 @@ const selectedDetailImage = ref(null)
 
 // 显示图片详情
 const showImageDetails = (item: any) => {
-    selectedDetailImage.value = item
-    isImageDetailDrawerOpen.value = true
+    // Navigate to image detail page instead of opening drawer
+    router.push(`/image/${item.id}`)
 }
 
 // 关闭图片详情抽屉

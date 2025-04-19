@@ -2,8 +2,9 @@
     <div class="picture-pool" ref="picturePool">
         <div class="title-container">
             <h1>{{ t('yijing') }}</h1>
-            <div v-if="pictureStore.currentTheme">当前主题为: {{ pictureStore.currentTheme }}</div>
-            <div v-else>当前主题为:</div>
+            <div v-if="pictureStore.currentTheme" class="current-theme">当前主题为:
+                <span>{{ pictureStore.currentTheme }}</span>
+            </div>
             <div class="filter-buttons">
                 <button class="filter-btn" :class="{ active: pictureStore.filterType === 'editor' }"
                     @click="changeFilter('editor')">{{ t('jingxuan') }}</button>
@@ -141,6 +142,11 @@ const isliked = (item) => {
             alertItem.classList.remove('alert-animation')
         }, 2000)
     }
+    //更新数据库
+    treasurePictureByDate({
+        url: item.url,
+        date: item.date
+    })
 }
 
 // 获取图片
@@ -304,8 +310,8 @@ const downloadImage = (url) => {
 
 // 显示图片详情
 const showImageDetails = (item) => {
-    selectedImage.value = item
-    isDrawerOpen.value = true
+    // Navigate to image detail page instead of opening drawer
+    router.push(`/image/${item.id}`)
 }
 
 // 关闭抽屉
@@ -347,6 +353,7 @@ onUnmounted(() => {
     // 清空图片数据，防止内存泄漏
     imageList.value = []
     columns.value = []
+    pictureStore.resetFilters()
 })
 </script>
 
@@ -375,9 +382,27 @@ onUnmounted(() => {
             }
         }
 
+        .current-theme {
+            margin-left: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #33333391;
+
+            @media (min-width: 800px) {
+                // margin-left: -30%;
+            }
+
+            span {
+                color: transparent;
+                background: linear-gradient(to right, rgb(236, 99, 99), rgb(255, 0, 111), rgba(110, 13, 13, 0.693), rgba(0, 0, 0, 0.616));
+                background-clip: text;
+                width: fit-content;
+            }
+        }
+
         .filter-buttons {
             @media (max-width: 800px) {
-                width: 80%;
+                width: 60%;
                 margin: 0 auto;
             }
 

@@ -71,7 +71,7 @@ onBeforeMount(() => {
                     homeShowPictureList.value.push(item0)
                 }
             })
-        })
+    })
     }).catch(err => { console.log(err); })
 })
 
@@ -121,8 +121,8 @@ const downloadImage = async (url: string) => {
 }
 
 const openDrawer = (item: any) => {
-    currentImage.value = item
-    drawerVisible.value = true
+    // Navigate to image detail page instead of opening drawer
+    router.push(`/image/${item.id}`)
 }
 
 const closeDrawer = () => {
