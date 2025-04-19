@@ -1,45 +1,13 @@
 <template>
     <div class="trea-main">
-        <el-row :gutter="20">
-            <el-col class="trea-img-box" :span="isShowRow" :offset="0" v-for="item in homeShowPictureList">
-                <img class="cover-img heart-icon" :src="item.isLiked === 0 ? heart : filledHeart"
-                    @click.stop="isliked(item)">
-                <img class="cover-img download-icon" :src="download" @click.stop="downloadImage(item.url)">
-                <img class="trea-img" :src="item.url" v-lazyimg v-SiHuaJinRu @click="openDrawer(item)">
+        <el-row :gutter="20" v-for="item in homeShowPictureList">
+            <b class="date-box">{{ item.date }}</b>
+            <el-col class="trea-img-box" :span="isShowRow" :offset="0" v-for="item0 in item.info">
+                <img class="cover-img heart-icon" :src="filledHeart" @click.stop="isliked(item0)">
+                <img class="cover-img download-icon" :src="download" @click.stop="downloadImage(item0.url)">
+                <img class="trea-img" :src="item0.url" v-lazyimg v-SiHuaJinRu @click="goDetail(item0)">
             </el-col>
         </el-row>
-
-        <!-- 自定义抽屉组件 -->
-        <div class="drawer" :class="{ 'drawer-open': drawerVisible }">
-            <div class="drawer-content">
-                <div class="drawer-header">
-                    <button class="close-btn" @click="closeDrawer">×</button>
-                </div>
-                <div class="drawer-body" v-if="currentImage">
-                    <img :src="currentImage.url" class="detail-image">
-                    <div class="image-info">
-                        <div class="info-row">
-                            <span class="info-label">{{ t('dainjishu') }}：</span>
-                            <span class="info-value">{{ currentImage.clickNum || 0 }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">{{ t('shoucangshu') }}：</span>
-                            <span class="info-value">{{ currentImage.treasureNum || 0 }}</span>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-btn like-btn" @click="isliked(currentImage)">
-                                <img :src="currentImage.isLiked === 0 ? heart : filledHeart" class="btn-icon">
-                                {{ currentImage.isLiked === 0 ? t('treasure') : t('treasured') }}
-                            </button>
-                            <button class="action-btn download-btn" @click="downloadImage(currentImage.url)">
-                                <img :src="download" class="btn-icon">
-                                {{ t('xiazai') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="alert" id="alertId">
@@ -49,7 +17,7 @@
 
 <script setup lang="ts">
 import { onBeforeMount, onMounted, ref } from 'vue';
-import { homeShowPicture } from '@/utils/api/picture';
+import { homeShowPicture, getLikedList, deleteFromLikedList } from '@/utils/api/picture';
 import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import download from '@/assets/img/下载.svg'
@@ -60,19 +28,20 @@ const { t } = useI18n()
 
 let homeShowPictureList = ref<any>([])
 let isShowRow = ref(6)  //一行展示几个
-const drawerVisible = ref(false)
-const currentImage = ref<any>(null)
 
 onBeforeMount(() => {
-    homeShowPicture().then(res => {
-        res.data.forEach((item: any) => {
-            item.url.forEach((item0: any) => {
-                if (item0.isLiked === 1) {
-                    homeShowPictureList.value.push(item0)
-                }
-            })
+    // homeShowPicture().then(res => {
+    //     res.data.forEach((item: any) => {
+    //         item.url.forEach((item0: any) => {
+    //             if (item0.isLiked === 1) {
+    //                 homeShowPictureList.value.push(item0)
+    //             }
+    //         })
+    //     })
+    // }).catch(err => { console.log(err); })
+    getLikedList().then((res: any) => {
+        homeShowPictureList.value = res.data
     })
-    }).catch(err => { console.log(err); })
 })
 
 onMounted(() => {
@@ -81,22 +50,20 @@ onMounted(() => {
 })
 
 const isliked = (item: any) => {
-    // if (localStorage.getItem('qweee-token') === null) {
-    //     router.push({ path: '/login' })
-    //     return
-    // }
     isLiked({
         id: item.id,
-        isLiked: item.isLiked === 0 ? 1 : 0
+        isLiked: 0
     })
-    if (item.isLiked === 0) {
-        showAlert()
-    }
     homeShowPictureList.value.forEach((eveitem: any) => {
-        if (eveitem.id === item.id) {
-            homeShowPictureList.value.splice(homeShowPictureList.value.indexOf(eveitem), 1)
-        }
+        eveitem.info.forEach((item0: any) => {
+            if (item0.url === item.url) {
+                eveitem.info.splice(eveitem.info.indexOf(item0), 1)
+            }
+        })
     });
+    deleteFromLikedList({
+        id: item.id,
+    })
 }
 
 const downloadImage = async (url: string) => {
@@ -120,16 +87,9 @@ const downloadImage = async (url: string) => {
     }
 }
 
-const openDrawer = (item: any) => {
+const goDetail = (item: any) => {
     // Navigate to image detail page instead of opening drawer
     router.push(`/image/${item.id}`)
-}
-
-const closeDrawer = () => {
-    drawerVisible.value = false
-    setTimeout(() => {
-        currentImage.value = null
-    }, 300)
 }
 
 const showAlert = () => {
@@ -148,6 +108,29 @@ const showAlert = () => {
 .trea-main {
     width: 95vw;
     margin: 0 auto;
+
+    .date-box {
+        .rem(font-size, 1.2);
+        .rem(margin-bottom, 0.5);
+        .rem(margin-top, 3);
+        .rem(margin-left, .8);
+        width: 100%;
+        color: transparent;
+        background: linear-gradient(to right, rgb(252, 131, 131), rgb(184, 3, 81), rgba(110, 13, 13, 0.693), rgba(0, 0, 0, 0.616));
+        background-clip: text;
+        position: relative;
+
+        &::after {
+            content: '';
+            display: block;
+            width: 98%;
+            height: 3px;
+            background: linear-gradient(to right, rgb(252, 131, 131), rgb(184, 3, 81), rgba(110, 13, 13, 0.693), rgba(0, 0, 0, 0.616));
+            position: absolute;
+            top: -18px;
+            left: 0;
+        }
+    }
 
     .trea-img-box {
         .rem(margin-bottom, 0.5);

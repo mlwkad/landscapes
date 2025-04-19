@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { isLiked } from '@/utils/api/picture'
+import { isLiked, addToLikedList, deleteFromLikedList } from '@/utils/api/picture'
 import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import download from '@/assets/img/下载.svg'
@@ -243,7 +243,17 @@ const navigateToImage = (item: any) => {
 // Like/unlike an image
 const isliked = (item: any) => {
     if (!item) return
-
+    if (item.isLiked === 0) {
+        addToLikedList({
+            id: item.id,
+            url: item.url,
+            date: new Date().toLocaleDateString()// 精确到日
+        })
+    } else {
+        deleteFromLikedList({
+            id: item.id,
+        })
+    }
     isLiked({
         id: item.id,
         isLiked: item.isLiked === 0 ? 1 : 0

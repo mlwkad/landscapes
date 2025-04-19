@@ -1,11 +1,12 @@
 <template>
     <div class="chat-container">
         <!-- 左侧侧边栏 -->
-        <div class="sidebar">
+        <div class="sidebar" v-if="!isFold">
             <div class="user-info">
                 <!-- <img :src="logo" alt="User Avatar" class="avatar"> -->
                 <div class="logo">PPPIX</div>
-                <!-- <span>豆包</span> -->
+                <img :src="isFold ? unfoldIcon : foldIcon" class="icon-attach" style="width: 19px;cursor: pointer;"
+                    :style="{ stroke: isFold ? '#1eba13' : 'rgb(202, 202, 202)' }" @click="foldSidebar">
             </div>
 
             <!-- 新对话 -->
@@ -38,7 +39,8 @@
                             }">
                                 <img :src="information" alt="User Avatar" class="avatar"
                                     style="width: 14px;transform: translateY(1px);margin-right: 2px;">
-                                {{ item.content && item.content.length > 0 ? item.content[0].content : t('xinhuadonghua') }}
+                                {{ item.content && item.content.length > 0 ? item.content[0].content :
+                                    t('xinhuadonghua') }}
                                 <!-- <img :src="edit" alt="编辑" class="edit-icon"
                                     style="width: 16px;transform: translateY(1px);margin-left: 2px;"> -->
                                 <img :src="deleteIcon" alt="删除" class="delete-icon"
@@ -50,6 +52,11 @@
                 </div>
             </div>
         </div>
+        <div class="sidebar-fold" v-else>
+            <img :src="unfoldIcon" alt="收起" class="icon-attach" style="width: 19px;"
+                :style="{ stroke: isFold ? '#1eba13' : 'rgb(202, 202, 202)' }" @click="foldSidebar">
+        </div>
+
 
         <!-- 聊天区域 -->
         <div class="main-content">
@@ -64,7 +71,7 @@
                         <button class="action-btn"
                             :style="{ backgroundColor: isOnline ? '#d4ffcaaf' : '#ffffff', color: isOnline ? '#1eba13' : 'rgb(202, 202, 202)', outline: isOnline ? '1px solid #1eba13' : '1px solid #dddddd' }"
                             @click="changeOnline">
-                            <img :src="online" class="icon-attach" style="width: 16px;"
+                            <img :src='isOnline ? isOnlineIcon : onlineIcon' class="icon-attach" style="width: 19px;"
                                 :style="{ stroke: isOnline ? '#1eba13' : 'rgb(202, 202, 202)' }">
                             {{ t('lianwngsousuo') }}
                         </button>
@@ -94,13 +101,15 @@ import information from '@/assets/img/聊天记录.svg'
 // import edit from '@/assets/img/编辑.svg'
 import deleteIcon from '@/assets/img/删除.svg'
 import fasong from '@/assets/img/fasong1.svg'
-import online from '@/assets/img/earth.svg'
-// import deepThink from '@/assets/img/深度思考.svg'
+import onlineIcon from '@/assets/img/online.svg'
+import isOnlineIcon from '@/assets/img/isOnline.svg'
+import foldIcon from '@/assets/img/收起.svg'
+import unfoldIcon from '@/assets/img/展开.svg'
 import sousuo from '@/assets/img/搜索-copy.svg'
 import liaotianjilu from '@/assets/img/聊天记录.svg'
 // import clear from '@/assets/img/清空.svg'
 import clearInput from '@/assets/img/clearInput.svg'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import BaseAIChat from '@/views/BaseAIChat.vue'
 import { getAllContent, addToAllContent, onlineSearch, deleteContent } from '@/utils/api/xunfei'
 import { useI18n } from 'vue-i18n'
@@ -109,6 +118,8 @@ const { t } = useI18n()
 let startOutPut = ref(false)  //传递一次输入内容
 const isShowMenu = ref(false)  // 是否显示菜单
 let streamMessage = ref('')  // 用户输入
+
+let isFold = ref(false)
 
 // 联网深度思考（默认不选）
 let isOnline = ref(false)
@@ -119,6 +130,10 @@ const changeOnline = () => {
 }
 const changDeepThink = () => { isDeepThink.value = !isDeepThink.value }
 
+// 收起侧边栏
+const foldSidebar = () => {
+    isFold.value = !isFold.value
+}
 // 历史对话
 let curID = ref(1)
 const history = ref<any>([])
@@ -171,6 +186,11 @@ onMounted(() => {
         }
         else addContent()
     })
+    window.addEventListener('resize', () => {
+        if (window.innerWidth < 500) isFold.value = true
+        else isFold.value = false
+    })
+    if (window.innerWidth < 500) isFold.value = true
 })
 </script>
 
@@ -212,11 +232,12 @@ onMounted(() => {
 }
 
 .sidebar {
-    width: 260px;
+    width: 220px;
     background-color: @sidebar-bg;
     border-right: 1px solid @border-color;
     padding: 16px;
     overflow-y: auto;
+    transition: width 0.3s ease;
 
     &::-webkit-scrollbar {
         width: 5px;
@@ -235,7 +256,7 @@ onMounted(() => {
 
     .user-info {
         .flex-center();
-        gap: 12px;
+        justify-content: space-between;
         padding: 8px;
 
         .avatar {
@@ -384,6 +405,17 @@ onMounted(() => {
         border-radius: 4px;
         margin-left: auto;
     }
+}
+
+.sidebar-fold {
+    margin-top: 10px;
+    margin-left: 10px;
+    border: 2px solid rgba(0, 0, 0, 0.385);
+    height: fit-content;
+    width: fit-content;
+    padding: 6px 5px 0px;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
 .main-content {

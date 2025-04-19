@@ -79,7 +79,7 @@
 
 <script setup lang="js">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { homeShowPicture, isLiked } from '@/utils/api/picture'
+import { homeShowPicture, isLiked, addToLikedList, deleteFromLikedList } from '@/utils/api/picture'
 import heart from '@/assets/img/heart.svg'
 import filledHeart from '@/assets/img/filled-heart.svg'
 import download from '@/assets/img/下载.svg'
@@ -122,15 +122,22 @@ const selectedImage = ref(null)
 
 // 收藏/取消收藏
 const isliked = (item) => {
-    // if (localStorage.getItem('qweee-token') === null) {
-    //     router.push({ path: '/login' })
-    //     return
-    // }
+    if (item.isLiked === 0) {
+        addToLikedList({
+            id: item.id,
+            url: item.url,
+            date: new Date().toLocaleDateString()// 精确到日
+        })
+    } else {
+        deleteFromLikedList({
+            id: item.id,
+        })
+    }
     //更新数据库
     isLiked({
         id: item.id,
         isLiked: item.isLiked === 0 ? 1 : 0
-    }).then((res) => console.log(res.message))
+    })
     //更新页面
     item.isLiked = item.isLiked === 0 ? 1 : 0
     //提示
@@ -142,11 +149,6 @@ const isliked = (item) => {
             alertItem.classList.remove('alert-animation')
         }, 2000)
     }
-    //更新数据库
-    treasurePictureByDate({
-        url: item.url,
-        date: item.date
-    })
 }
 
 // 获取图片
@@ -165,8 +167,17 @@ const getImages = async () => {
         const endIndex = startIndex + imagesPerGroup
         const currentImages = filteredImages.slice(startIndex, endIndex)
 
+        // 确保所有图片都有高度属性
+        const processedImages = currentImages.map(img => {
+            if (!img.height) {
+                // 如果没有高度，设置一个默认高度或根据图片宽高比例计算
+                return { ...img, height: 250 }; // 默认高度250px
+            }
+            return img;
+        });
+
         // 更新图片列表
-        imageList.value = [...imageList.value, ...currentImages]
+        imageList.value = [...imageList.value, ...processedImages]
         reputImages()
     } else {
         // 如果没有找到匹配图片
@@ -197,12 +208,24 @@ const changeFilter = (type) => {
 
 // 完全重排
 const reputImages = () => {
+    // 确保列数至少为1
+    if (columnCount.value <= 0) {
+        columnCount.value = 1;
+    }
+
     // 初始化数组:长度为列数,每个元素都是[]的数组
     const newColumns = Array(columnCount.value).fill(null).map(() => [])
     // 初始化每列高度,全为0
     const columnHeights = Array(columnCount.value).fill(0)
     // 将图片分配到最短的列
     imageList.value.forEach(item => {
+        if (!item) return; // 跳过无效项
+
+        // 确保item有height属性
+        if (item.height === undefined || item.height === null) {
+            item.height = 250; // 设置默认高度
+        }
+
         // 找出高度最小的列
         const minHeightIndex = columnHeights.indexOf(Math.min(...columnHeights))
         // 将图片添加到该列
@@ -259,6 +282,10 @@ const widthScrollObserver = () => {
 
     resizeObserver = new ResizeObserver((entries) => {
         columnCount.value = Math.floor(window.innerWidth / 330)
+        // 确保列数至少为1
+        if (columnCount.value <= 0) {
+            columnCount.value = 1
+        }
         reputImages()
     })
     resizeObserver.observe(container.value)
@@ -354,6 +381,7 @@ onUnmounted(() => {
     imageList.value = []
     columns.value = []
     pictureStore.resetFilters()
+    pictureStore.originalImages = []
 })
 </script>
 
