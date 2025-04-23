@@ -75,13 +75,6 @@
                                 :style="{ stroke: isOnline ? '#1eba13' : 'rgb(202, 202, 202)' }">
                             {{ t('lianwngsousuo') }}
                         </button>
-                        <!-- <button class="action-btn"
-                            :style="{ backgroundColor: isDeepThink ? '#d4ffcaaf' : '#ffffff', color: isDeepThink ? '#1eba13' : 'rgb(202, 202, 202)', outline: isDeepThink ? '1px solid #1eba13' : '1px solid #dddddd' }"
-                            @click="changDeepThink">
-                            <img :src="deepThink" class="icon-deep" style="width: 16px;"
-                                :style="{ stroke: isDeepThink ? '#1eba13' : 'rgb(202, 202, 202)' }">
-                            深度思考
-                        </button> -->
                     </div>
                     <button style="position: absolute;right:49px;border: none;" class="submit"
                         @click="streamMessage = ''" v-if="streamMessage"><img :src="clearInput"
@@ -457,7 +450,7 @@ onMounted(() => {
                 gap: 8px;
                 position: absolute;
                 left: 10px;
-                width: 200px;
+                width: fit-content;
 
                 .action-btn {
                     .flex-center();

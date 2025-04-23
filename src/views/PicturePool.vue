@@ -5,18 +5,20 @@
             <div v-if="pictureStore.currentTheme" class="current-theme">当前主题为:
                 <span>{{ pictureStore.currentTheme }}</span>
             </div>
-            <div class="filter-buttons">
-                <button class="filter-btn" :class="{ active: pictureStore.filterType === 'editor' }"
-                    @click="changeFilter('editor')">{{ t('jingxuan') }}</button>
-                <button class="filter-btn" :class="{ active: pictureStore.filterType === 'newest' }"
-                    @click="changeFilter('newest')">{{ t('zuixin') }}</button>
-                <button class="filter-btn" :class="{ active: pictureStore.filterType === 'popular' }"
-                    @click="changeFilter('popular')">{{ t('remen') }}</button>
+            <div class="filter-container">
+                <div class="filter-buttons">
+                    <button class="filter-btn" :class="{ active: pictureStore.filterType === 'editor' }"
+                        @click="changeFilter('editor')">{{ t('jingxuan') }}</button>
+                    <button class="filter-btn" :class="{ active: pictureStore.filterType === 'newest' }"
+                        @click="changeFilter('newest')">{{ t('zuixin') }}</button>
+                    <button class="filter-btn" :class="{ active: pictureStore.filterType === 'popular' }"
+                        @click="changeFilter('popular')">{{ t('remen') }}</button>
+                </div>
             </div>
         </div>
         <div class="waterfall-container" ref="container">
             <div v-for="(column, columnIndex) in columns" :key="columnIndex" class="waterfall-column">
-                <div v-for="item in column" :key="item.id" class="waterfall-item">
+                <div v-for="item in column" :key="item.id" class="waterfall-item" ref="waterfallItems">
                     <img class="cover-img" :src="item.isLiked === 0 ? heart : filledHeart" @click.stop="isliked(item)">
                     <img class="download-img" :src="download" @click.stop="downloadImage(item.url)">
                     <img class="waterfall-img" alt="" :src="item.url" v-lazyimg v-SiHuaJinRu
@@ -116,6 +118,9 @@ let resizeObserver = null
 // 图片池引用(回到顶部)
 const picturePool = ref(null)
 
+// 获取所有瀑布流盒子,v-for的元素获取到的是一个数组,数组中每个元素就是每个waterfall-item DOM元素
+const waterfallItems = ref([])
+
 // 抽屉相关状态
 const isDrawerOpen = ref(false)
 const selectedImage = ref(null)
@@ -179,6 +184,14 @@ const getImages = async () => {
         // 更新图片列表
         imageList.value = [...imageList.value, ...processedImages]
         reputImages()
+
+        // 添加这部分：等待DOM渲染完成后再添加事件处理
+        // nextTick(() => {
+        //     // 此时DOM应该已经渲染完成
+        //     setTimeout(() => {
+        //         const elements = document.querySelectorAll('.waterfall-item')
+        //     }, 500)
+        // })
     } else {
         // 如果没有找到匹配图片
         imageList.value = []
@@ -349,6 +362,32 @@ const closeDrawer = () => {
     }, 300) // 等待动画结束后再清空数据
 }
 
+// 添加鼠标移动处理函数
+const handleMouseMove = (e) => {
+    waterfallItems.value.forEach(item => {
+        if (!item) return
+        const rect = item.getBoundingClientRect()
+        // 子元素(这里是伪元素)可以使用父元素的css变量
+        item.style.setProperty('--x', `${e.clientX - rect.left - rect.width / 2}px`)
+        item.style.setProperty('--y', `${e.clientY - rect.top - rect.height / 2}px`)
+    })
+    // getBoundingClientRect API
+    // 返回一个 DOMRect 对象，该对象包含元素的大小以及其相对于视口的位置信息
+    // left: 元素左边框距离视口左侧的距离
+    // top: 元素上边框距离视口顶部的距离
+    // right: 元素右边框距离视口左侧的距离，等于 left + width
+    // bottom: 元素底边框距离视口顶部的距离，等于 top + height
+    // width: 元素的宽度，包括 padding 和 border - width
+    // height: 元素的高度，同样包括 padding 和 border - width
+    // x: 元素左上角相对于视口左侧的距离，与 left 相同
+    // y: 元素左上角相对于视口顶部的距离，与 top 相同
+    // 如果元素的 box - sizing 属性设置为 border - box，那么 width 和 height 将直接等于元素的 width 或 height
+
+    // clientX / clientY：鼠标指针相对于浏览器视口的水平/垂直坐标
+    // pageX / pageY：鼠标指针相对于整个网页（包括滚动部分）的坐标
+    // screenX / screenY：鼠标指针相对于计算机屏幕的坐标
+}
+
 // 监听Store中主题变化，当主题变化时重新加载图片
 watch(() => pictureStore.currentTheme, (newTheme) => {
     // 重置页面状态
@@ -366,6 +405,9 @@ watch(() => pictureStore.currentTheme, (newTheme) => {
 onMounted(() => {
     getImages()  // 加载初始数据
     widthScrollObserver()  // 监听宽度,是否滚动到底部
+
+    // 添加鼠标移动事件监听
+    window.addEventListener('mousemove', handleMouseMove)
 })
 
 onUnmounted(() => {
@@ -377,7 +419,11 @@ onUnmounted(() => {
         resizeObserver.disconnect()
         resizeObserver = null
     }
-    // 清空图片数据，防止内存泄漏
+
+    // 移除事件监听器
+    window.removeEventListener('mousemove', handleMouseMove)
+
+    // 清空数据
     imageList.value = []
     columns.value = []
     pictureStore.resetFilters()
@@ -391,6 +437,7 @@ onUnmounted(() => {
 
 .picture-pool {
     padding: 16px;
+    width: 95%;
     // padding-top: 5.5vw;
 
     .title-container {
@@ -428,44 +475,77 @@ onUnmounted(() => {
             }
         }
 
-        .filter-buttons {
+        .filter-container {
             @media (max-width: 800px) {
-                width: 60%;
+                width: 70%;
                 margin: 0 auto;
             }
 
-            display: flex;
-            gap: 5px;
-            background-color: rgb(226, 225, 225);
+            padding: 3.5px 3px 3px;
+            background-color: transparent;
             border-radius: 24px;
-            padding: 3px;
-            justify-content: space-around;
+            position: relative;
+            overflow: hidden;
 
-            .filter-btn {
-                @media (max-width: 800px) {
-                    width: 33%;
+            &::before {
+                background: linear-gradient(to right, rgb(236, 99, 99), rgb(255, 0, 111), rgba(110, 13, 13, 0.693), rgba(0, 0, 0, 0.616));
+                content: '';
+                position: absolute;
+                width: 60%;
+                height: 40%;
+                top: 50%;
+                left: 50%;
+                border-radius: inherit;
+                z-index: -1;
+                transform-origin: top left;
+                animation: filter-animation 3s infinite linear;
+            }
+
+            @keyframes filter-animation {
+                0% {
+                    transform: rotate(0deg)
                 }
 
-                padding: 6px 12px;
-                border-radius: 20px;
-                border: 1px solid #eee;
-                background-color: #fff;
-                .rem(font-size, 1);
-                cursor: pointer;
-                transition: all 0.3s;
-                white-space: nowrap;
-                font-weight: 600;
-                color: rgb(144, 143, 143);
+                100% {
+                    transform: rotate(360deg)
+                }
+            }
 
-                &.active {
-                    background-color: #f9f9f9;
-                    border-color: #ddd;
+            .filter-buttons {
+
+                display: flex;
+                gap: 5px;
+                background-color: rgb(226, 225, 225);
+                border-radius: 24px;
+                padding: 3px;
+                justify-content: space-around;
+
+                .filter-btn {
+                    @media (max-width: 800px) {
+                        width: 33%;
+                    }
+
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    border: 1px solid #eee;
+                    background-color: #fff;
+                    .rem(font-size, 1);
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    white-space: nowrap;
                     font-weight: 600;
-                    color: black;
-                }
+                    color: rgb(144, 143, 143);
 
-                &:hover {
-                    background-color: #f9f9f9;
+                    &.active {
+                        background-color: #f9f9f9;
+                        border-color: #ddd;
+                        font-weight: 600;
+                        color: black;
+                    }
+
+                    &:hover {
+                        background-color: #f9f9f9;
+                    }
                 }
             }
         }
@@ -474,18 +554,34 @@ onUnmounted(() => {
     .waterfall-container {
         display: flex;
         width: 100%;
-        gap: 16px; //主轴间距
+        gap: 20px; //主轴间距
 
         .waterfall-column {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 13px; //交叉(主)轴间距
+            gap: 8px; //交叉(主)轴间距
 
             .waterfall-item {
                 width: 100%;
+                /* 关键:超出盒子的部分隐藏 */
                 overflow: hidden;
                 position: relative;
+                border-radius: 12px;
+                background-color: transparent;
+                /* 内部预留空间给伪元素 */
+                padding: 5px 5.5px 0;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    /* inset 是 top, right, bottom, left 的缩写,配合position使用*/
+                    /* inset:0 填满父元素 */
+                    inset: 0;
+                    /* closest-side:最小半径圆(盒子的min(宽,高)) 颜色1 起始位置(从中心点开始算,0%就是中心点) 颜色2 起始位置 */
+                    background: radial-gradient(closest-side circle, rgba(255, 0, 0, 0.5) 0%, rgba(255, 0, 0, 0) 50%);
+                    transform: translate(var(--x, -10000px), var(--y, -10000px));
+                }
 
                 .cover-img {
                     position: absolute;
@@ -526,7 +622,7 @@ onUnmounted(() => {
                 }
 
                 .waterfall-img {
-                    border-radius: 12px;
+                    border-radius: inherit;
                     width: 100%;
                     object-fit: cover;
                     cursor: pointer;

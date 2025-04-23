@@ -92,8 +92,6 @@ onMounted(() => {
                 .rem(font-size, 1.3);
             }
 
-
-
             &:nth-child(5) {
                 font-weight: 550;
                 color: rgb(0, 0, 0);

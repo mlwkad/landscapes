@@ -70,7 +70,7 @@ watch(() => props.startOutPut, (newVal) => { if (newVal && props.streamMessage) 
 
 //scrollY 是一个全局属性，表示整个窗口在垂直方向上已滚动的距离,只读
 //scrollTop 是某个元素在垂直方向上已滚动的距离，只读
-//scrollHeight 是某个元素的实际高度，包括溢出的文本高度只读
+//scrollHeight 是某个元素的实际高度，包括溢出的文本高度,只读
 //滚动到底部的函数
 const scrollToBottom = () => nextTick(() => chatContainer.value.scrollTop = chatContainer.value.scrollHeight)
 
