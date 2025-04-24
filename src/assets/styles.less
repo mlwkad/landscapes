@@ -7,11 +7,11 @@
 //时刻在改变
 .vw(@name, @multiple) {
     @{name}: @multiple*1vw;
-}   
+}
 
 @media(max-width:800px) {
     html {
-        font-size: 16px;  //  === 1rem
+        font-size: 16px; //  === 1rem
     }
 }
 
@@ -27,5 +27,12 @@
     }
 }
 
+html[data-theme="light"] {
+    --oneColor: #000;
+    --twoColor: #fff;
+}
 
-
+html[data-theme="dark"] {
+    --oneColor: #fff;
+    --twoColor: #000;
+}

@@ -198,16 +198,12 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    top: 15px;
-    bottom: 100px;
-    left: 25px;
     width: 100%;
+    height: 100%;
     gap: 35px;
     //不写就不让滚动
     overflow-y: auto;
-    overflow-x: hidden;
     padding-bottom: 40px;
-    // outline: 1px solid rgb(253, 88, 88);
 
     &::-webkit-scrollbar {
         width: 7px;
