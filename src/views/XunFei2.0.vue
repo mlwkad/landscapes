@@ -4,7 +4,7 @@
         <div class="sidebar" v-if="!isFold">
             <div class="user-info">
                 <!-- <img :src="logo" alt="User Avatar" class="avatar"> -->
-                <div class="logo">PPPIX</div>
+                <div class="logo">PPIXX</div>
                 <img :src="isFold ? unfoldIcon : foldIcon" class="icon-attach" style="width: 19px;cursor: pointer;"
                     :style="{ stroke: isFold ? '#1eba13' : 'rgb(202, 202, 202)' }" @click="foldSidebar">
             </div>

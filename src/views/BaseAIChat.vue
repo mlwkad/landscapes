@@ -172,6 +172,7 @@ const saveMessage = async (role: string, content: string) => {
     await messageList.value.push({ role: role, content: finalContent })
     updateContent({ id: props.id, content: messageList.value })
     updateHistName()
+    scrollToBottom()
 }
 
 //复制内容

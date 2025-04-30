@@ -16,7 +16,8 @@
                 </div>
             </div>
         </div>
-        <div class="waterfall-container" ref="container">
+        <div class="waterfall-container" ref="container" @mouseenter="watchMouseEnter"
+            @mouseleave="watchwatchMouseLeave">
             <div v-for="(column, columnIndex) in columns" :key="columnIndex" class="waterfall-column">
                 <div v-for="item in column" :key="item.id" class="waterfall-item" ref="waterfallItems">
                     <img class="cover-img" :src="item.isLiked === 0 ? heart : filledHeart" @click.stop="isliked(item)">
@@ -88,6 +89,7 @@ import download from '@/assets/img/下载.svg'
 import { useI18n } from 'vue-i18n'
 import router from '@/router'
 import { usePictureStore } from '@/stores/picture' // 导入Pinia store
+import { Mousewheel } from 'element-plus'
 
 const { t } = useI18n()
 // 引入图片Store
@@ -362,6 +364,10 @@ const closeDrawer = () => {
     }, 300) // 等待动画结束后再清空数据
 }
 
+const watchMouseEnter = () => window.addEventListener('mousemove', handleMouseMove)
+
+const watchwatchMouseLeave = () => window.removeEventListener('mousemove', handleMouseMove)
+
 // 添加鼠标移动处理函数
 const handleMouseMove = (e) => {
     waterfallItems.value.forEach(item => {
@@ -405,9 +411,6 @@ watch(() => pictureStore.currentTheme, (newTheme) => {
 onMounted(() => {
     getImages()  // 加载初始数据
     widthScrollObserver()  // 监听宽度,是否滚动到底部
-
-    // 添加鼠标移动事件监听
-    window.addEventListener('mousemove', handleMouseMove)
 })
 
 onUnmounted(() => {

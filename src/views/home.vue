@@ -8,16 +8,19 @@
         </header>
         <div class="park-line"></div>
     </div>
+    <div class="float-button" ref="floatButton" @mousedown="watchFloatButton" @mouseup="handleMouseUp">666</div>
     <RouterView />
     <div class="go-top" v-if="goTopShow" @click="goTop">{{ t('huidaodingbu') }}</div>
 </template>
 <script setup lang="ts">
-import { useRouter, RouterView } from 'vue-router'
+import { useRouter, RouterView, viewDepthKey } from 'vue-router'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getClientXY } from 'element-plus/es/utils'
 const { t } = useI18n()
 let activeId = ref(1)
 let goTopShow = ref(false)
+let floatButton = ref(null)
 let curLanguage = ref(localStorage.getItem('qweee-language') === 'zh' ? '中' : 'En')
 let header = [{ id: 1, name: t('explore') }, { id: 2, name: t('treasure') }, { id: 3, name: t('wenwen') }, { id: 4, name: localStorage.getItem('qweee-token') ? t('loginOut') : t('login') }, { id: 5, name: curLanguage.value }]
 //动态引入 --> 分隔代码
@@ -44,6 +47,27 @@ const go = (item: any) => {
 }
 
 const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
+// 可拖动按钮相关:
+let offsetX = 0
+let offsetY = 0
+
+const watchFloatButton = (e) => {
+    // 记录点击时的偏移量:鼠标处于元素哪个位置
+    const rect = floatButton.value.getBoundingClientRect()
+    offsetX = e.clientX - rect.left  // 鼠标类事件即可调用clientX/Y(mousemove mousedown mouseup click dblclick ...)
+    offsetY = e.clientY - rect.top
+    window.addEventListener('mousemove', handleMouseMove)
+}
+
+const handleMouseMove = (e) => {
+    // 鼠标在视口的位置 - 偏移量 = 保证鼠标与元素的相对位置不变
+    floatButton.value.style.setProperty('--x', `${e.clientX - offsetX}px`)
+    floatButton.value.style.setProperty('--y', `${e.clientY - offsetY}px`)
+}
+
+const handleMouseUp = () => window.removeEventListener('mousemove', handleMouseMove)
+
 
 onMounted(() => {
     if (sessionStorage.getItem('activeId') === '1' || sessionStorage.getItem('activeId') === null) {
@@ -154,6 +178,15 @@ onMounted(() => {
     border-radius: 12px 12px 0 0;
     .rem(padding, 0.5);
     z-index: 999999;
+    cursor: pointer;
+}
+
+.float-button {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    transform: translate(var(--x, 13px), var(--y, 19.6px));
     cursor: pointer;
 }
 </style>
